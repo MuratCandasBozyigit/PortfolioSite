@@ -253,17 +253,18 @@ if (isset($_GET['delete_gallery'])) {
 }
 
 // CONTACT İşlemleri
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "add_contact") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["action"] == "add_contact") {
     $stmt = $pdo->prepare("INSERT INTO contact (name, email, phone, instagram, facebook, linkedin) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"]]);
     header("Location: admin.php");
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "update_contact") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["action"] == "update_contact") {
     $stmt = $pdo->prepare("UPDATE contact SET name=?, email=?, phone=?, instagram=?, facebook=?, linkedin=? WHERE id=?");
     $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"], $_POST["id"]]);
     header("Location: admin.php");
 }
+
 
 if (isset($_GET["delete_contact"])) {
     $stmt = $pdo->prepare("DELETE FROM contact WHERE id=?");
