@@ -46,8 +46,12 @@ function initializeDatabase($pdo) {
             facebook VARCHAR(255),
             linkedin VARCHAR(255)
          )",
-
+        "CREATE TABLE IF NOT EXISTS whoami (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            whoamiContent TEXT NOT NULL
+        )"
     ];
+
     foreach ($queries as $query) {
         $pdo->exec($query);
     }
@@ -114,7 +118,23 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// POST işlemleri (About)
+// WHOAMI İşlemleri
+$whoamiContent = '';
+$stmt = $pdo->query("SELECT whoamiContent FROM whoami WHERE id = 1");
+if ($stmt && $row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $whoamiContent = $row['whoamiContent'];
+}
+
+if (isset($_POST['saveWhoami'])) {
+    $newContent = $_POST['whoamiContent'];
+    $stmt = $pdo->prepare("REPLACE INTO whoami (id, whoamiContent) VALUES (1, ?)");
+    $stmt->execute([$newContent]);
+    $whoamiContent = $newContent;
+    header("Location: admin.php");
+    exit;
+}
+
+// ABOUT İşlemleri
 if (isset($_POST['save_about'])) {
     $stmt = $pdo->prepare("INSERT INTO about (title, content) VALUES (?, ?)");
     $stmt->execute([$_POST['about_title'], $_POST['about_content']]);
@@ -135,7 +155,7 @@ if (isset($_GET['delete_about'])) {
     exit;
 }
 
-// POST işlemleri (Blog)
+// BLOG İşlemleri
 if (isset($_POST['save_blog'])) {
     $stmt = $pdo->prepare("INSERT INTO blog (title, content) VALUES (?, ?)");
     $stmt->execute([$_POST['blog_title'], $_POST['blog_content']]);
@@ -156,7 +176,7 @@ if (isset($_GET['delete_blog'])) {
     exit;
 }
 
-// POST işlemleri (Gallery)
+// GALLERY İşlemleri
 if (isset($_POST['save_gallery'])) {
     $stmt = $pdo->prepare("INSERT INTO gallery (title, image_url) VALUES (?, ?)");
     $stmt->execute([$_POST['gallery_title'], $_POST['gallery_image']]);
@@ -177,28 +197,26 @@ if (isset($_GET['delete_gallery'])) {
     exit;
 }
 
-// INSERT
+// CONTACT İşlemleri
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "add_contact") {
     $stmt = $pdo->prepare("INSERT INTO contact (name, email, phone, instagram, facebook, linkedin) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"]]);
     header("Location: admin.php");
 }
 
-// UPDATE
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "update_contact") {
     $stmt = $pdo->prepare("UPDATE contact SET name=?, email=?, phone=?, instagram=?, facebook=?, linkedin=? WHERE id=?");
     $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"], $_POST["id"]]);
     header("Location: admin.php");
 }
 
-// DELETE
 if (isset($_GET["delete_contact"])) {
     $stmt = $pdo->prepare("DELETE FROM contact WHERE id=?");
     $stmt->execute([$_GET["delete_contact"]]);
     header("Location: admin.php");
 }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -218,6 +236,12 @@ if (isset($_GET["delete_contact"])) {
         .editable {
             background-color: #e0ffe0;
         }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -228,13 +252,32 @@ if (isset($_GET["delete_contact"])) {
     </div>
 
     <div class="accordion" id="accordionPanelsStayOpen">
+        <!-- Kendimi Tanıtıyorum Bölümü -->
+        <div class="mb-4">
+            <button class="btn btn-outline-dark w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhoami">
+                ✍️ Kendimi Tanıtıyorum
+            </button>
+
+            <div class="collapse mb-4" id="collapseWhoami">
+                <div class="card card-body">
+                    <form method="POST">
+                        <div class="form-group mb-3">
+                            <label for="whoamiContent">Tanıtım Yazısı:</label>
+                            <textarea name="whoamiContent" id="whoamiContent" class="form-control" rows="5" required><?= htmlspecialchars($whoamiContent) ?></textarea>
+                        </div>
+                        <button type="submit" name="saveWhoami" class="btn btn-success">Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- About Bölümü -->
         <div class="mb-4">
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#aboutSection">➕ Hakkımda Bölümünü Aç/Kapat</button>
             <div class="collapse" id="aboutSection">
                 <div class="card card-body shadow">
-                    <form method="post" class="mb-3" action="admin.php">
-                        <input type="hidden" name="about_id" id="about_id" value="">
+                    <form method="post" class="mb-3">
+                        <input type="hidden" name="about_id" id="about_id">
                         <div class="mb-3">
                             <label>Başlık</label>
                             <input type="text" name="about_title" id="about_title" class="form-control" required>
@@ -281,8 +324,8 @@ if (isset($_GET["delete_contact"])) {
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#blogSection">➕ Blog Bölümünü Aç/Kapat</button>
             <div class="collapse" id="blogSection">
                 <div class="card card-body shadow">
-                    <form method="post" class="mb-3" action="admin.php">
-                        <input type="hidden" name="blog_id" id="blog_id" value="">
+                    <form method="post" class="mb-3">
+                        <input type="hidden" name="blog_id" id="blog_id">
                         <div class="mb-3">
                             <label>Başlık</label>
                             <input type="text" name="blog_title" id="blog_title" class="form-control" required>
@@ -329,8 +372,8 @@ if (isset($_GET["delete_contact"])) {
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#gallerySection">➕ Galeri Bölümünü Aç/Kapat</button>
             <div class="collapse" id="gallerySection">
                 <div class="card card-body shadow">
-                    <form method="post" class="mb-3" action="admin.php">
-                        <input type="hidden" name="gallery_id" id="gallery_id" value="">
+                    <form method="post" class="mb-3">
+                        <input type="hidden" name="gallery_id" id="gallery_id">
                         <div class="mb-3">
                             <label>Başlık</label>
                             <input type="text" name="gallery_title" id="gallery_title" class="form-control" required>
@@ -372,12 +415,11 @@ if (isset($_GET["delete_contact"])) {
             </div>
         </div>
 
-        <!-- İletişim Section -->
+        <!-- İletişim Bölümü -->
         <div class="mb-4">
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#contactSection">➕ İletişim Bilgileri</button>
             <div class="collapse" id="contactSection">
                 <div class="card card-body">
-                    <!-- Form -->
                     <form method="POST" class="row g-2">
                         <input type="hidden" name="action" value="add_contact">
                         <div class="col-md-4">
@@ -405,7 +447,6 @@ if (isset($_GET["delete_contact"])) {
 
                     <hr>
 
-                    <!-- Table -->
                     <table class="table mt-3">
                         <thead>
                         <tr>
@@ -424,7 +465,6 @@ if (isset($_GET["delete_contact"])) {
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             echo "<tr>";
                             if (isset($_GET['edit_contact']) && $_GET['edit_contact'] == $row['id']) {
-                                // Inline update form
                                 echo '<form method="POST">';
                                 echo '<input type="hidden" name="action" value="update_contact">';
                                 echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
@@ -444,9 +484,9 @@ if (isset($_GET["delete_contact"])) {
                                 echo "<td><a href='{$row['facebook']}' target='_blank'>Facebook</a></td>";
                                 echo "<td><a href='{$row['linkedin']}' target='_blank'>LinkedIn</a></td>";
                                 echo "<td>
-                                <a href='?edit_contact={$row['id']}' class='btn btn-sm btn-warning'>Güncelle</a>
-                                <a href='?delete_contact={$row['id']}' class='btn btn-sm btn-danger'>Sil</a>
-                              </td>";
+                                    <a href='?edit_contact={$row['id']}' class='btn btn-sm btn-warning'>Güncelle</a>
+                                    <a href='?delete_contact={$row['id']}' class='btn btn-sm btn-danger'>Sil</a>
+                                </td>";
                             }
                             echo "</tr>";
                         }
@@ -455,38 +495,52 @@ if (isset($_GET["delete_contact"])) {
                     </table>
                 </div>
             </div>
-
         </div>
-
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let selectedBlogRowId = null;
-
-    function selectBlogRow(id) {
-        if (selectedBlogRowId !== null) {
-            document.getElementById('row_' + selectedBlogRowId).classList.remove('selected-row');
-        }
-        selectedBlogRowId = id;
-        document.getElementById('row_' + id).classList.add('selected-row');
+    // About Form Doldurma
+    function fillAboutForm(id, title, content) {
+        document.getElementById('about_id').value = id;
+        document.getElementById('about_title').value = title;
+        document.getElementById('about_content').value = content;
+        document.getElementById('save_btn').style.display = 'none';
+        document.getElementById('update_btn').style.display = 'inline-block';
     }
 
+    // Blog Form Doldurma
     function fillBlogForm(id, title, content) {
         document.getElementById('blog_id').value = id;
         document.getElementById('blog_title').value = title;
         document.getElementById('blog_content').value = content;
         document.getElementById('save_blog_btn').style.display = 'none';
         document.getElementById('update_blog_btn').style.display = 'inline-block';
-        document.getElementById('blog_title').focus();
     }
+
+    // Gallery Form Doldurma
     function fillGalleryForm(id, title, image) {
         document.getElementById('gallery_id').value = id;
         document.getElementById('gallery_title').value = title;
         document.getElementById('gallery_image').value = image;
         document.getElementById('save_gallery_btn').style.display = 'none';
         document.getElementById('update_gallery_btn').style.display = 'inline-block';
+    }
+
+    // Satır Seçme
+    function selectRow(id) {
+        document.querySelectorAll('tr[id^="row_"]').forEach(row => {
+            row.classList.remove('selected-row');
+        });
+        document.getElementById('row_' + id).classList.add('selected-row');
+    }
+
+    function selectBlogRow(id) {
+        document.querySelectorAll('tr[id^="row_"]').forEach(row => {
+            row.classList.remove('selected-row');
+        });
+        document.getElementById('row_' + id).classList.add('selected-row');
     }
 </script>
 </body>
