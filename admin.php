@@ -52,12 +52,14 @@ function initializeDatabase($pdo) {
             id INT PRIMARY KEY AUTO_INCREMENT,
             whoamiContent TEXT NOT NULL
         )",
-
-        "CREATE TABLE IF NOT EXISTS blog (
+        "CREATE TABLE IF NOT EXISTS blog_entries (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(100),
-            content TEXT
-        )",
+            category VARCHAR(100) NOT NULL, -- 'personal', 'travel', 'recommend', 'tech'
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )",
+
         "CREATE TABLE IF NOT EXISTS gallery (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
@@ -72,6 +74,7 @@ function initializeDatabase($pdo) {
             facebook VARCHAR(255),
             linkedin VARCHAR(255)
          )",
+
 
     ];
 
@@ -207,27 +210,27 @@ if (isset($_GET["delete_contact"])) {
     header("Location: admin.php");
 }
 
-
 // BLOG islemleri
-if (isset($_POST['save_blog'])) {
-    $stmt = $pdo->prepare("INSERT INTO blog (title, content) VALUES (?, ?)");
-    $stmt->execute([$_POST['blog_title'], $_POST['blog_content']]);
-    header("Location: admin.php");
-    exit;
+if (isset($_POST['save_personal_blog'])) {
+    $stmt = $pdo->prepare("INSERT INTO blog_entries (category, title, content) VALUES (?, ?, ?)");
+    $stmt->execute(['personal', $_POST['personal_title'], $_POST['personal_content']]);
 }
 
-if (isset($_POST['update_blog'])) {
-    $stmt = $pdo->prepare("UPDATE blog SET title = ?, content = ? WHERE id = ?");
-    $stmt->execute([$_POST['blog_title'], $_POST['blog_content'], $_POST['blog_id']]);
-    header("Location: admin.php");
-    exit;
+if (isset($_POST['save_travel_blog'])) {
+    $stmt = $pdo->prepare("INSERT INTO blog_entries (category, title, content) VALUES (?, ?, ?)");
+    $stmt->execute(['travel', $_POST['travel_title'], $_POST['travel_content']]);
 }
 
-if (isset($_GET['delete_blog'])) {
-    $pdo->prepare("DELETE FROM blog WHERE id = ?")->execute([$_GET['delete_blog']]);
-    header("Location: admin.php");
-    exit;
+if (isset($_POST['save_recommend_blog'])) {
+    $stmt = $pdo->prepare("INSERT INTO blog_entries (category, title, content) VALUES (?, ?, ?)");
+    $stmt->execute(['recommend', $_POST['recommend_title'], $_POST['recommend_content']]);
 }
+
+if (isset($_POST['save_tech_blog'])) {
+    $stmt = $pdo->prepare("INSERT INTO blog_entries (category, title, content) VALUES (?, ?, ?)");
+    $stmt->execute(['tech', $_POST['tech_title'], $_POST['tech_content']]);
+}
+
 
 // GALLERY İşlemleri
 if (isset($_POST['save_gallery'])) {
@@ -400,50 +403,91 @@ if (isset($_GET['delete_gallery'])) {
             </div>
         </div>
 
-        <!-- Blog Bölümü -->
+        <!-- Blog Ana Accordion -->
         <div class="mb-4">
-            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#blogSection">➕ Blog Bölümünü Aç/Kapat</button>
+            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#blogSection">
+                ➕ Blog Bölümünü Aç/Kapat
+            </button>
+            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#getBlogs">
+                ➕ Kayıtlı Blog Bilgileri
+            </button>
             <div class="collapse" id="blogSection">
                 <div class="card card-body shadow">
-                    <form method="post" class="mb-3">
-                        <input type="hidden" name="blog_id" id="blog_id">
-                        <div class="mb-3">
-                            <label>Başlık</label>
-                            <input type="text" name="blog_title" id="blog_title" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label>İçerik</label>
-                            <textarea name="blog_content" id="blog_content" class="form-control" rows="4" required></textarea>
-                        </div>
-                        <button type="submit" name="save_blog" id="save_blog_btn" class="btn btn-success">Kaydet</button>
-                        <button type="submit" name="update_blog" id="update_blog_btn" class="btn btn-warning" style="display:none;">Güncelle</button>
-                    </form>
+                    <div class="accordion" id="blogMainAccordion">
 
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Başlık</th>
-                            <th>İçerik</th>
-                            <th>İşlemler</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        $blogData = $pdo->query("SELECT * FROM blog ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-                        foreach ($blogData as $row): ?>
-                            <tr id="row_<?= $row['id'] ?>" onclick="selectBlogRow(<?= $row['id'] ?>)">
-                                <td><?= $row['id'] ?></td>
-                                <td><?= htmlspecialchars($row['title']) ?></td>
-                                <td><?= nl2br(htmlspecialchars($row['content'])) ?></td>
-                                <td>
-                                    <button class="btn btn-warning btn-sm" onclick="fillBlogForm(<?= $row['id'] ?>, '<?= addslashes($row['title']) ?>', '<?= addslashes($row['content']) ?>'); return false;">Güncelle</button>
-                                    <a href="?delete_blog=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                        <!-- Kişisel Yazılar -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="personalHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#personalCollapse">
+                                    📝 Kişisel Yazılar
+                                </button>
+                            </h2>
+                            <div id="personalCollapse" class="accordion-collapse collapse" data-bs-parent="#blogMainAccordion">
+                                <div class="accordion-body">
+                                    <form method="post">
+                                        <input type="text" name="personal_title" class="form-control mb-2" placeholder="Başlık" required>
+                                        <textarea name="personal_content" rows="4" class="form-control mb-2" placeholder="İçerik" required></textarea>
+                                        <button type="submit" name="save_personal_blog" class="btn btn-success">Kaydet</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seyahat Notları -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="travelHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#travelCollapse">
+                                    🌍 Seyahat Notları
+                                </button>
+                            </h2>
+                            <div id="travelCollapse" class="accordion-collapse collapse" data-bs-parent="#blogMainAccordion">
+                                <div class="accordion-body">
+                                    <form method="post">
+                                        <input type="text" name="travel_title" class="form-control mb-2" placeholder="Başlık" required>
+                                        <textarea name="travel_content" rows="4" class="form-control mb-2" placeholder="İçerik" required></textarea>
+                                        <button type="submit" name="save_travel_blog" class="btn btn-success">Kaydet</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kitap & Film Önerileri -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="recommendHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#recommendCollapse">
+                                    🎬 Kitap & Film Önerileri
+                                </button>
+                            </h2>
+                            <div id="recommendCollapse" class="accordion-collapse collapse" data-bs-parent="#blogMainAccordion">
+                                <div class="accordion-body">
+                                    <form method="post">
+                                        <input type="text" name="recommend_title" class="form-control mb-2" placeholder="Başlık" required>
+                                        <textarea name="recommend_content" rows="4" class="form-control mb-2" placeholder="İçerik" required></textarea>
+                                        <button type="submit" name="save_recommend_blog" class="btn btn-success">Kaydet</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Teknoloji & İlgi Alanları -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="techHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#techCollapse">
+                                    💻 Teknoloji & İlgi Alanları
+                                </button>
+                            </h2>
+                            <div id="techCollapse" class="accordion-collapse collapse" data-bs-parent="#blogMainAccordion">
+                                <div class="accordion-body">
+                                    <form method="post">
+                                        <input type="text" name="tech_title" class="form-control mb-2" placeholder="Başlık" required>
+                                        <textarea name="tech_content" rows="4" class="form-control mb-2" placeholder="İçerik" required></textarea>
+                                        <button type="submit" name="save_tech_blog" class="btn btn-success">Kaydet</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- /blogMainAccordion -->
                 </div>
             </div>
         </div>
