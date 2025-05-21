@@ -230,6 +230,63 @@ if (isset($_POST['save_tech_blog'])) {
     $stmt = $pdo->prepare("INSERT INTO blog_entries (category, title, content) VALUES (?, ?, ?)");
     $stmt->execute(['tech', $_POST['tech_title'], $_POST['tech_content']]);
 }
+$categories = [
+    'personal' => 'personalContent',
+    'travel' => 'travelContent',
+    'recommend' => 'recommendContent',
+    'tech' => 'techContent'
+];
+if (isset($_GET['delete_blog'])) {
+    $blogId = intval($_GET['delete_blog']); // Blog ID'sini al
+    $stmt = $pdo->prepare("DELETE FROM blog_entries WHERE id = ?");
+    $stmt->execute([$blogId]);
+
+    // Silme işleminden sonra admin sayfasına yönlendir
+    header("Location: admin.php");
+    exit;
+}
+
+foreach ($categories as $category => $contentId):
+    $blogs = $pdo->prepare("SELECT * FROM blog_entries WHERE category = :cat ORDER BY id DESC");
+    $blogs->execute(['cat' => $category]);
+    $rows = $blogs->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($rows):
+        echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const container = document.getElementById('$contentId');
+                    container.innerHTML = `" .
+            "<table class='table table-bordered'>" .
+            "<thead class='table-light'>" .
+            "<tr>" .
+            "<th>ID</th><th>Başlık</th><th>İçerik</th><th>Tarih</th><th>İşlemler</th>" .
+            "</tr>" .
+            "</thead><tbody>";
+
+        foreach ($rows as $row) {
+            $id = $row['id'];
+            $title = htmlspecialchars($row['title']);
+            $content = nl2br(htmlspecialchars($row['content']));
+            $date = $row['created_at'];
+
+            echo "<tr>
+                    <td>$id</td>
+                    <td>$title</td>
+                    <td>$content</td>
+                    <td>$date</td>
+                    <td>
+                        <a href='?delete_blog=$id' class='btn btn-danger btn-sm' onclick='return confirm(\"Silinsin mi?\")'>Sil</a>
+                    </td>
+                </tr>";
+        }
+
+        echo "</tbody></table>`; 
+                });
+            </script>";
+    endif;
+endforeach;
+
+
 
 
 // GALLERY İşlemleri
@@ -408,10 +465,52 @@ if (isset($_GET['delete_gallery'])) {
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#blogSection">
                 ➕ Blog Bölümünü Aç/Kapat
             </button>
-            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#getBlogs">
-                ➕ Kayıtlı Blog Bilgileri
-            </button>
+
             <div class="collapse" id="blogSection">
+                <!-- BLOG AKORDİYON BUTONU -->
+                <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#getBlogs">
+                    ➕ Kayıtlı Blog Bilgileri
+                </button>
+
+                <!-- BLOG ANA COLLAPSE -->
+                <div class="collapse" id="getBlogs">
+                    <div class="card card-body">
+
+                        <!-- KATEGORİ BUTONLARI -->
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#personalBlogs">Kişisel</button>
+                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#travelBlogs">Seyahat</button>
+                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#recommendBlogs">Öneriler</button>
+                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#techBlogs">Teknoloji</button>
+                        </div>
+
+                        <!-- KİŞİSEL BLOG TABLOSU -->
+                        <div class="collapse" id="personalBlogs">
+                            <h5>📝 Kişisel Yazılar</h5>
+                            <div id="personalContent"></div>
+                        </div>
+
+                        <!-- SEYAHAT BLOG TABLOSU -->
+                        <div class="collapse" id="travelBlogs">
+                            <h5>🌍 Seyahat Yazıları</h5>
+                            <div id="travelContent"></div>
+                        </div>
+
+                        <!-- ÖNERİ BLOG TABLOSU -->
+                        <div class="collapse" id="recommendBlogs">
+                            <h5>👍 Öneriler</h5>
+                            <div id="recommendContent"></div>
+                        </div>
+
+                        <!-- TEKNOLOJİ BLOG TABLOSU -->
+                        <div class="collapse" id="techBlogs">
+                            <h5>💻 Teknoloji Yazıları</h5>
+                            <div id="techContent"></div>
+                        </div>
+
+                    </div>
+                </div>
+
                 <div class="card card-body shadow">
                     <div class="accordion" id="blogMainAccordion">
 
