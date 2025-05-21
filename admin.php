@@ -22,6 +22,29 @@ function initializeDatabase($pdo) {
             username VARCHAR(50) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL
         )",
+        "CREATE TABLE IF NOT EXISTS biography (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+            content TEXT NOT NULL
+        )",
+        "CREATE TABLE IF NOT EXISTS interests (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+            interest VARCHAR(255) NOT NULL
+        )",
+        "CREATE TABLE IF NOT EXISTS education_experience (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL, 
+            institution VARCHAR(255) NOT NULL,
+            start_date DATE,
+            end_date DATE,
+            description TEXT
+        )",
+        "CREATE TABLE IF NOT EXISTS achievements (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            issuer VARCHAR(255),
+            date DATE,
+            description TEXT
+        )",
         "CREATE TABLE IF NOT EXISTS about (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
@@ -252,7 +275,7 @@ if (isset($_GET["delete_contact"])) {
     </div>
 
     <div class="accordion" id="accordionPanelsStayOpen">
-        <!-- Kendimi Tanıtıyorum Bölümü -->
+        <!-- whıami Bölümü -->
         <div class="mb-4">
             <button class="btn btn-outline-dark w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhoami">
                 ✍️ Kendimi Tanıtıyorum
@@ -271,50 +294,74 @@ if (isset($_GET["delete_contact"])) {
             </div>
         </div>
 
-        <!-- About Bölümü -->
+        <!-- Hakkımda Ana Bölüm -->
         <div class="mb-4">
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#aboutSection">➕ Hakkımda Bölümünü Aç/Kapat</button>
             <div class="collapse" id="aboutSection">
                 <div class="card card-body shadow">
-                    <form method="post" class="mb-3">
-                        <input type="hidden" name="about_id" id="about_id">
-                        <div class="mb-3">
-                            <label>Başlık</label>
-                            <input type="text" name="about_title" id="about_title" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label>İçerik</label>
-                            <textarea name="about_content" id="about_content" class="form-control" rows="4" required></textarea>
-                        </div>
-                        <button type="submit" name="save_about" id="save_btn" class="btn btn-success">Kaydet</button>
-                        <button type="submit" name="update_about" id="update_btn" class="btn btn-warning" style="display:none;">Güncelle</button>
-                    </form>
 
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Başlık</th>
-                            <th>İçerik</th>
-                            <th>İşlemler</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        $aboutData = $pdo->query("SELECT * FROM about ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-                        foreach ($aboutData as $row): ?>
-                            <tr id="row_<?= $row['id'] ?>" onclick="selectRow(<?= $row['id'] ?>)">
-                                <td><?= $row['id'] ?></td>
-                                <td><?= htmlspecialchars($row['title']) ?></td>
-                                <td><?= nl2br(htmlspecialchars($row['content'])) ?></td>
-                                <td>
-                                    <button class="btn btn-warning btn-sm" onclick="fillAboutForm(<?= $row['id'] ?>, '<?= addslashes($row['title']) ?>', '<?= addslashes($row['content']) ?>'); return false;">Güncelle</button>
-                                    <a href="?delete_about=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <!-- Accordion Start -->
+                    <div class="accordion" id="aboutAccordion">
+
+                        <!-- 1. Biyografi -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingBio">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBio" aria-expanded="true" aria-controls="collapseBio">
+                                    📄 Biyografi
+                                </button>
+                            </h2>
+                            <div id="collapseBio" class="accordion-collapse collapse show" aria-labelledby="headingBio" data-bs-parent="#aboutAccordion">
+                                <div class="accordion-body">
+                                    <!-- Biyografi Form & Tablo Buraya Gelecek -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. İlgi Alanlarım -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingInterests">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInterests" aria-expanded="false" aria-controls="collapseInterests">
+                                    💡 İlgi Alanlarım
+                                </button>
+                            </h2>
+                            <div id="collapseInterests" class="accordion-collapse collapse" aria-labelledby="headingInterests" data-bs-parent="#aboutAccordion">
+                                <div class="accordion-body">
+                                    <!-- İlgi Alanları Form & Tablo Buraya Gelecek -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Eğitim ve Deneyim -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEducation">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEducation" aria-expanded="false" aria-controls="collapseEducation">
+                                    🎓 Eğitim & Deneyim
+                                </button>
+                            </h2>
+                            <div id="collapseEducation" class="accordion-collapse collapse" aria-labelledby="headingEducation" data-bs-parent="#aboutAccordion">
+                                <div class="accordion-body">
+                                    <!-- Eğitim ve Deneyim Form & Tablo Buraya Gelecek -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Başarılar & Sertifikalar -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAchievements">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAchievements" aria-expanded="false" aria-controls="collapseAchievements">
+                                    🏆 Başarılar & Sertifikalar
+                                </button>
+                            </h2>
+                            <div id="collapseAchievements" class="accordion-collapse collapse" aria-labelledby="headingAchievements" data-bs-parent="#aboutAccordion">
+                                <div class="accordion-body">
+                                    <!-- Başarılar Form & Tablo Buraya Gelecek -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Accordion End -->
+
                 </div>
             </div>
         </div>
