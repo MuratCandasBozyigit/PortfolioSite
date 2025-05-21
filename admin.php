@@ -177,6 +177,38 @@ if (isset($_GET['delete_about'])) {
     header("Location: admin.php");
     exit;
 }
+// Biyografi Kaydet
+if (isset($_POST['save_biography'])) {
+    $stmt = $pdo->prepare("INSERT INTO biography (content) VALUES (?)");
+    $stmt->execute([$_POST['bio_content']]);
+}
+
+// İlgi Alanı Kaydet
+if (isset($_POST['save_interest'])) {
+    $stmt = $pdo->prepare("INSERT INTO interests (content) VALUES (?)");
+    $stmt->execute([$_POST['interest_content']]);
+}
+
+// Eğitim & Deneyim Kaydet
+if (isset($_POST['save_education'])) {
+    $stmt = $pdo->prepare("INSERT INTO education_experience (title, description, start_year, end_year) VALUES (?, ?, ?, ?)");
+    $stmt->execute([
+        $_POST['edu_title'],
+        $_POST['edu_description'],
+        $_POST['start_year'],
+        $_POST['end_year']
+    ]);
+}
+
+// Başarı / Sertifika Kaydet
+if (isset($_POST['save_achievement'])) {
+    $stmt = $pdo->prepare("INSERT INTO achievements (title, description, date_obtained) VALUES (?, ?, ?)");
+    $stmt->execute([
+        $_POST['achieve_title'],
+        $_POST['achieve_description'],
+        $_POST['date_obtained']
+    ]);
+}
 
 // BLOG İşlemleri
 if (isset($_POST['save_blog'])) {
@@ -294,74 +326,93 @@ if (isset($_GET["delete_contact"])) {
             </div>
         </div>
 
-        <!-- Hakkımda Ana Bölüm -->
+        <!-- Hakkımda Ana Accordion -->
         <div class="mb-4">
-            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#aboutSection">➕ Hakkımda Bölümünü Aç/Kapat</button>
-            <div class="collapse" id="aboutSection">
+            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#hakkimdaSection">
+                ➕ Hakkımda Bölümünü Aç/Kapat
+            </button>
+
+            <div class="collapse" id="hakkimdaSection">
                 <div class="card card-body shadow">
 
-                    <!-- Accordion Start -->
-                    <div class="accordion" id="aboutAccordion">
+                    <div class="accordion" id="aboutMainAccordion">
 
-                        <!-- 1. Biyografi -->
+                        <!-- Biyografi -->
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingBio">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBio" aria-expanded="true" aria-controls="collapseBio">
-                                    📄 Biyografi
+                            <h2 class="accordion-header" id="bioHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bioCollapse">
+                                    ✍️ Biyografi
                                 </button>
                             </h2>
-                            <div id="collapseBio" class="accordion-collapse collapse show" aria-labelledby="headingBio" data-bs-parent="#aboutAccordion">
+                            <div id="bioCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutMainAccordion">
                                 <div class="accordion-body">
-                                    <!-- Biyografi Form & Tablo Buraya Gelecek -->
+                                    <form method="post">
+                                        <textarea name="bio_content" rows="4" class="form-control mb-2" placeholder="Biyografinizi yazın..." required></textarea>
+                                        <button type="submit" name="save_biography" class="btn btn-success">Kaydet</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 2. İlgi Alanlarım -->
+                        <!-- İlgi Alanlarım -->
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingInterests">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInterests" aria-expanded="false" aria-controls="collapseInterests">
-                                    💡 İlgi Alanlarım
+                            <h2 class="accordion-header" id="interestHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#interestCollapse">
+                                    ⭐ İlgi Alanlarım
                                 </button>
                             </h2>
-                            <div id="collapseInterests" class="accordion-collapse collapse" aria-labelledby="headingInterests" data-bs-parent="#aboutAccordion">
+                            <div id="interestCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutMainAccordion">
                                 <div class="accordion-body">
-                                    <!-- İlgi Alanları Form & Tablo Buraya Gelecek -->
+                                    <form method="post">
+                                        <textarea name="interest_content" rows="3" class="form-control mb-2" placeholder="İlgi alanlarınızı yazın..." required></textarea>
+                                        <button type="submit" name="save_interest" class="btn btn-success">Kaydet</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 3. Eğitim ve Deneyim -->
+                        <!-- Eğitim & Deneyim -->
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingEducation">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEducation" aria-expanded="false" aria-controls="collapseEducation">
+                            <h2 class="accordion-header" id="eduHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eduCollapse">
                                     🎓 Eğitim & Deneyim
                                 </button>
                             </h2>
-                            <div id="collapseEducation" class="accordion-collapse collapse" aria-labelledby="headingEducation" data-bs-parent="#aboutAccordion">
+                            <div id="eduCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutMainAccordion">
                                 <div class="accordion-body">
-                                    <!-- Eğitim ve Deneyim Form & Tablo Buraya Gelecek -->
+                                    <form method="post">
+                                        <input type="text" name="edu_title" class="form-control mb-2" placeholder="Başlık (Okul / İş)" required>
+                                        <textarea name="edu_description" rows="3" class="form-control mb-2" placeholder="Açıklama" required></textarea>
+                                        <div class="row">
+                                            <div class="col"><input type="text" name="start_year" class="form-control mb-2" placeholder="Başlangıç Yılı"></div>
+                                            <div class="col"><input type="text" name="end_year" class="form-control mb-2" placeholder="Bitiş Yılı"></div>
+                                        </div>
+                                        <button type="submit" name="save_education" class="btn btn-success">Kaydet</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 4. Başarılar & Sertifikalar -->
+                        <!-- Başarılar & Sertifikalar -->
                         <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingAchievements">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAchievements" aria-expanded="false" aria-controls="collapseAchievements">
+                            <h2 class="accordion-header" id="achieveHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#achieveCollapse">
                                     🏆 Başarılar & Sertifikalar
                                 </button>
                             </h2>
-                            <div id="collapseAchievements" class="accordion-collapse collapse" aria-labelledby="headingAchievements" data-bs-parent="#aboutAccordion">
+                            <div id="achieveCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutMainAccordion">
                                 <div class="accordion-body">
-                                    <!-- Başarılar Form & Tablo Buraya Gelecek -->
+                                    <form method="post">
+                                        <input type="text" name="achieve_title" class="form-control mb-2" placeholder="Başlık" required>
+                                        <textarea name="achieve_description" rows="2" class="form-control mb-2" placeholder="Açıklama"></textarea>
+                                        <input type="date" name="date_obtained" class="form-control mb-2">
+                                        <button type="submit" name="save_achievement" class="btn btn-success">Kaydet</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
 
-                    </div>
-                    <!-- Accordion End -->
-
+                    </div> <!-- /aboutMainAccordion -->
                 </div>
             </div>
         </div>
