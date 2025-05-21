@@ -17,17 +17,19 @@ try {
 
 function initializeDatabase($pdo) {
     $queries = [
+            //Users
         "CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(50) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL
         )",
+           //Hakkımda Tabloları
         "CREATE TABLE IF NOT EXISTS biography (
                 id INT AUTO_INCREMENT PRIMARY KEY,
             content TEXT NOT NULL
         )",
         "CREATE TABLE IF NOT EXISTS interests (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+            id INT AUTO_INCREMENT PRIMARY KEY,
             interest VARCHAR(255) NOT NULL
         )",
         "CREATE TABLE IF NOT EXISTS education_experience (
@@ -45,11 +47,7 @@ function initializeDatabase($pdo) {
             date DATE,
             description TEXT
         )",
-        "CREATE TABLE IF NOT EXISTS about (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(100),
-            content TEXT
-        )",
+
         "CREATE TABLE IF NOT EXISTS blog (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
@@ -141,7 +139,6 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// WHOAMI İşlemleri
 $whoamiContent = '';
 $stmt = $pdo->query("SELECT whoamiContent FROM whoami WHERE id = 1");
 if ($stmt && $row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -157,60 +154,42 @@ if (isset($_POST['saveWhoami'])) {
     exit;
 }
 
-// ABOUT İşlemleri
-if (isset($_POST['save_about'])) {
-    $stmt = $pdo->prepare("INSERT INTO about (title, content) VALUES (?, ?)");
-    $stmt->execute([$_POST['about_title'], $_POST['about_content']]);
-    header("Location: admin.php");
-    exit;
-}
 
-if (isset($_POST['update_about'])) {
-    $stmt = $pdo->prepare("UPDATE about SET title = ?, content = ? WHERE id = ?");
-    $stmt->execute([$_POST['about_title'], $_POST['about_content'], $_POST['about_id']]);
-    header("Location: admin.php");
-    exit;
-}
-
-if (isset($_GET['delete_about'])) {
-    $pdo->prepare("DELETE FROM about WHERE id = ?")->execute([$_GET['delete_about']]);
-    header("Location: admin.php");
-    exit;
-}
-// Biyografi Kaydet
+/*Hakkımda Başlangıç.*/
 if (isset($_POST['save_biography'])) {
     $stmt = $pdo->prepare("INSERT INTO biography (content) VALUES (?)");
     $stmt->execute([$_POST['bio_content']]);
 }
 
-// İlgi Alanı Kaydet
 if (isset($_POST['save_interest'])) {
-    $stmt = $pdo->prepare("INSERT INTO interests (content) VALUES (?)");
+    $stmt = $pdo->prepare("INSERT INTO interests (interest) VALUES (?)");
     $stmt->execute([$_POST['interest_content']]);
 }
 
-// Eğitim & Deneyim Kaydet
 if (isset($_POST['save_education'])) {
-    $stmt = $pdo->prepare("INSERT INTO education_experience (title, description, start_year, end_year) VALUES (?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO education_experience (title, institution, start_date, end_date, description) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([
         $_POST['edu_title'],
-        $_POST['edu_description'],
+        $_POST['edu_institution'],
         $_POST['start_year'],
-        $_POST['end_year']
+        $_POST['end_year'],
+        $_POST['edu_description']
     ]);
 }
 
-// Başarı / Sertifika Kaydet
 if (isset($_POST['save_achievement'])) {
-    $stmt = $pdo->prepare("INSERT INTO achievements (title, description, date_obtained) VALUES (?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO achievements (title, issuer, description, date) VALUES (?, ?, ?, ?)");
     $stmt->execute([
         $_POST['achieve_title'],
+        $_POST['achieve_issuer'],
         $_POST['achieve_description'],
         $_POST['date_obtained']
     ]);
 }
+/*Hakkımda Bitiş*/
 
-// BLOG İşlemleri
+
+// BLOG islemleri
 if (isset($_POST['save_blog'])) {
     $stmt = $pdo->prepare("INSERT INTO blog (title, content) VALUES (?, ?)");
     $stmt->execute([$_POST['blog_title'], $_POST['blog_content']]);
@@ -383,10 +362,11 @@ if (isset($_GET["delete_contact"])) {
                                 <div class="accordion-body">
                                     <form method="post">
                                         <input type="text" name="edu_title" class="form-control mb-2" placeholder="Başlık (Okul / İş)" required>
+                                        <input type="text" name="edu_institution" class="form-control mb-2" placeholder="Kurum (Üniversite / Şirket)" required>
                                         <textarea name="edu_description" rows="3" class="form-control mb-2" placeholder="Açıklama" required></textarea>
                                         <div class="row">
-                                            <div class="col"><input type="text" name="start_year" class="form-control mb-2" placeholder="Başlangıç Yılı"></div>
-                                            <div class="col"><input type="text" name="end_year" class="form-control mb-2" placeholder="Bitiş Yılı"></div>
+                                            <div class="col"><input type="date" name="start_year" class="form-control mb-2" placeholder="Başlangıç Tarihi"></div>
+                                            <div class="col"><input type="date" name="end_year" class="form-control mb-2" placeholder="Bitiş Tarihi"></div>
                                         </div>
                                         <button type="submit" name="save_education" class="btn btn-success">Kaydet</button>
                                     </form>
@@ -405,6 +385,7 @@ if (isset($_GET["delete_contact"])) {
                                 <div class="accordion-body">
                                     <form method="post">
                                         <input type="text" name="achieve_title" class="form-control mb-2" placeholder="Başlık" required>
+                                        <input type="text" name="achieve_issuer" class="form-control mb-2" placeholder="Kurumu (Sertifikayı Veren)">
                                         <textarea name="achieve_description" rows="2" class="form-control mb-2" placeholder="Açıklama"></textarea>
                                         <input type="date" name="date_obtained" class="form-control mb-2">
                                         <button type="submit" name="save_achievement" class="btn btn-success">Kaydet</button>
@@ -600,32 +581,8 @@ if (isset($_GET["delete_contact"])) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // About Form Doldurma
-    function fillAboutForm(id, title, content) {
-        document.getElementById('about_id').value = id;
-        document.getElementById('about_title').value = title;
-        document.getElementById('about_content').value = content;
-        document.getElementById('save_btn').style.display = 'none';
-        document.getElementById('update_btn').style.display = 'inline-block';
-    }
 
-    // Blog Form Doldurma
-    function fillBlogForm(id, title, content) {
-        document.getElementById('blog_id').value = id;
-        document.getElementById('blog_title').value = title;
-        document.getElementById('blog_content').value = content;
-        document.getElementById('save_blog_btn').style.display = 'none';
-        document.getElementById('update_blog_btn').style.display = 'inline-block';
-    }
 
-    // Gallery Form Doldurma
-    function fillGalleryForm(id, title, image) {
-        document.getElementById('gallery_id').value = id;
-        document.getElementById('gallery_title').value = title;
-        document.getElementById('gallery_image').value = image;
-        document.getElementById('save_gallery_btn').style.display = 'none';
-        document.getElementById('update_gallery_btn').style.display = 'inline-block';
-    }
 
     // Satır Seçme
     function selectRow(id) {
