@@ -47,6 +47,11 @@ function initializeDatabase($pdo) {
             date DATE,
             description TEXT
         )",
+            //Ben Kimim
+        "CREATE TABLE IF NOT EXISTS whoami (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            whoamiContent TEXT NOT NULL
+        )",
 
         "CREATE TABLE IF NOT EXISTS blog (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -67,10 +72,7 @@ function initializeDatabase($pdo) {
             facebook VARCHAR(255),
             linkedin VARCHAR(255)
          )",
-        "CREATE TABLE IF NOT EXISTS whoami (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            whoamiContent TEXT NOT NULL
-        )"
+
     ];
 
     foreach ($queries as $query) {
@@ -155,7 +157,7 @@ if (isset($_POST['saveWhoami'])) {
 }
 
 
-/*Hakkımda Başlangıç.*/
+//Hakkımda İşlemleri
 if (isset($_POST['save_biography'])) {
     $stmt = $pdo->prepare("INSERT INTO biography (content) VALUES (?)");
     $stmt->execute([$_POST['bio_content']]);
@@ -186,7 +188,24 @@ if (isset($_POST['save_achievement'])) {
         $_POST['date_obtained']
     ]);
 }
-/*Hakkımda Bitiş*/
+// CONTACT İşlemleri
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["action"] == "add_contact") {
+    $stmt = $pdo->prepare("INSERT INTO contact (name, email, phone, instagram, facebook, linkedin) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"]]);
+    header("Location: admin.php");
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["action"] == "update_contact") {
+    $stmt = $pdo->prepare("UPDATE contact SET name=?, email=?, phone=?, instagram=?, facebook=?, linkedin=? WHERE id=?");
+    $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"], $_POST["id"]]);
+    header("Location: admin.php");
+}
+
+if (isset($_GET["delete_contact"])) {
+    $stmt = $pdo->prepare("DELETE FROM contact WHERE id=?");
+    $stmt->execute([$_GET["delete_contact"]]);
+    header("Location: admin.php");
+}
 
 
 // BLOG islemleri
@@ -231,25 +250,7 @@ if (isset($_GET['delete_gallery'])) {
     exit;
 }
 
-// CONTACT İşlemleri
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["action"] == "add_contact") {
-    $stmt = $pdo->prepare("INSERT INTO contact (name, email, phone, instagram, facebook, linkedin) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"]]);
-    header("Location: admin.php");
-}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["action"] == "update_contact") {
-    $stmt = $pdo->prepare("UPDATE contact SET name=?, email=?, phone=?, instagram=?, facebook=?, linkedin=? WHERE id=?");
-    $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"], $_POST["id"]]);
-    header("Location: admin.php");
-}
-
-
-if (isset($_GET["delete_contact"])) {
-    $stmt = $pdo->prepare("DELETE FROM contact WHERE id=?");
-    $stmt->execute([$_GET["delete_contact"]]);
-    header("Location: admin.php");
-}
 ?>
 
 <!DOCTYPE html>
@@ -582,9 +583,6 @@ if (isset($_GET["delete_contact"])) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 
-
-
-    // Satır Seçme
     function selectRow(id) {
         document.querySelectorAll('tr[id^="row_"]').forEach(row => {
             row.classList.remove('selected-row');
