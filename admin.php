@@ -36,7 +36,16 @@ function initializeDatabase($pdo) {
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
             image_url TEXT
-        )"
+        )",
+        "CREATE TABLE IF NOT EXISTS contact (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(20),
+            instagram VARCHAR(255),
+            facebook VARCHAR(255),
+            linkedin VARCHAR(255)
+         )",
 
     ];
     foreach ($queries as $query) {
@@ -168,6 +177,26 @@ if (isset($_GET['delete_gallery'])) {
     exit;
 }
 
+// INSERT
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "add_contact") {
+    $stmt = $pdo->prepare("INSERT INTO contact (name, email, phone, instagram, facebook, linkedin) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"]]);
+    header("Location: admin.php");
+}
+
+// UPDATE
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "update_contact") {
+    $stmt = $pdo->prepare("UPDATE contact SET name=?, email=?, phone=?, instagram=?, facebook=?, linkedin=? WHERE id=?");
+    $stmt->execute([$_POST["name"], $_POST["email"], $_POST["phone"], $_POST["instagram"], $_POST["facebook"], $_POST["linkedin"], $_POST["id"]]);
+    header("Location: admin.php");
+}
+
+// DELETE
+if (isset($_GET["delete_contact"])) {
+    $stmt = $pdo->prepare("DELETE FROM contact WHERE id=?");
+    $stmt->execute([$_GET["delete_contact"]]);
+    header("Location: admin.php");
+}
 
 ?>
 <!DOCTYPE html>
@@ -341,6 +370,92 @@ if (isset($_GET['delete_gallery'])) {
                     </table>
                 </div>
             </div>
+        </div>
+
+        <!-- İletişim Section -->
+        <div class="mb-4">
+            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#contactSection">➕ İletişim Bilgileri</button>
+            <div class="collapse" id="contactSection">
+                <div class="card card-body">
+                    <!-- Form -->
+                    <form method="POST" class="row g-2">
+                        <input type="hidden" name="action" value="add_contact">
+                        <div class="col-md-4">
+                            <input type="text" name="name" class="form-control" placeholder="Adınız">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="email" name="email" class="form-control" placeholder="Email (Gmail)">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="phone" class="form-control" placeholder="Telefon Numarası">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="instagram" class="form-control" placeholder="Instagram Linki">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="facebook" class="form-control" placeholder="Facebook Linki">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="linkedin" class="form-control" placeholder="LinkedIn Linki">
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-success w-100" type="submit">Kaydet</button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <!-- Table -->
+                    <table class="table mt-3">
+                        <thead>
+                        <tr>
+                            <th>Ad</th>
+                            <th>Email</th>
+                            <th>Telefon</th>
+                            <th>Instagram</th>
+                            <th>Facebook</th>
+                            <th>LinkedIn</th>
+                            <th>İşlem</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        $stmt = $pdo->query("SELECT * FROM contact");
+                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            echo "<tr>";
+                            if (isset($_GET['edit_contact']) && $_GET['edit_contact'] == $row['id']) {
+                                // Inline update form
+                                echo '<form method="POST">';
+                                echo '<input type="hidden" name="action" value="update_contact">';
+                                echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
+                                echo "<td><input type='text' name='name' value='{$row['name']}' class='form-control'></td>";
+                                echo "<td><input type='email' name='email' value='{$row['email']}' class='form-control'></td>";
+                                echo "<td><input type='text' name='phone' value='{$row['phone']}' class='form-control'></td>";
+                                echo "<td><input type='text' name='instagram' value='{$row['instagram']}' class='form-control'></td>";
+                                echo "<td><input type='text' name='facebook' value='{$row['facebook']}' class='form-control'></td>";
+                                echo "<td><input type='text' name='linkedin' value='{$row['linkedin']}' class='form-control'></td>";
+                                echo "<td><button type='submit' class='btn btn-sm btn-primary'>Kaydet</button></td>";
+                                echo '</form>';
+                            } else {
+                                echo "<td>{$row['name']}</td>";
+                                echo "<td>{$row['email']}</td>";
+                                echo "<td>{$row['phone']}</td>";
+                                echo "<td><a href='{$row['instagram']}' target='_blank'>Instagram</a></td>";
+                                echo "<td><a href='{$row['facebook']}' target='_blank'>Facebook</a></td>";
+                                echo "<td><a href='{$row['linkedin']}' target='_blank'>LinkedIn</a></td>";
+                                echo "<td>
+                                <a href='?edit_contact={$row['id']}' class='btn btn-sm btn-warning'>Güncelle</a>
+                                <a href='?delete_contact={$row['id']}' class='btn btn-sm btn-danger'>Sil</a>
+                              </td>";
+                            }
+                            echo "</tr>";
+                        }
+                        ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
     </div>
