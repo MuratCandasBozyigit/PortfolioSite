@@ -26,6 +26,11 @@ function initializeDatabase($pdo) {
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
             content TEXT
+        )",
+        "CREATE TABLE IF NOT EXISTS blog (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(100),
+            content TEXT
         )"
     ];
     foreach ($queries as $query) {
@@ -114,6 +119,27 @@ if (isset($_GET['delete_about'])) {
     header("Location: admin.php");
     exit;
 }
+
+// POST işlemleri (Blog)
+if (isset($_POST['save_blog'])) {
+    $stmt = $pdo->prepare("INSERT INTO blog (title, content) VALUES (?, ?)");
+    $stmt->execute([$_POST['blog_title'], $_POST['blog_content']]);
+    header("Location: admin.php");
+    exit;
+}
+
+if (isset($_POST['update_blog'])) {
+    $stmt = $pdo->prepare("UPDATE blog SET title = ?, content = ? WHERE id = ?");
+    $stmt->execute([$_POST['blog_title'], $_POST['blog_content'], $_POST['blog_id']]);
+    header("Location: admin.php");
+    exit;
+}
+
+if (isset($_GET['delete_blog'])) {
+    $pdo->prepare("DELETE FROM blog WHERE id = ?")->execute([$_GET['delete_blog']]);
+    header("Location: admin.php");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -191,37 +217,77 @@ if (isset($_GET['delete_about'])) {
                 </div>
             </div>
         </div>
+
+        <!-- Blog Bölümü -->
+        <div class="mb-4">
+            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#blogSection">➕ Blog Bölümünü Aç/Kapat</button>
+            <div class="collapse" id="blogSection">
+                <div class="card card-body shadow">
+                    <form method="post" class="mb-3" action="admin.php">
+                        <input type="hidden" name="blog_id" id="blog_id" value="">
+                        <div class="mb-3">
+                            <label>Başlık</label>
+                            <input type="text" name="blog_title" id="blog_title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>İçerik</label>
+                            <textarea name="blog_content" id="blog_content" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" name="save_blog" id="save_blog_btn" class="btn btn-success">Kaydet</button>
+                        <button type="submit" name="update_blog" id="update_blog_btn" class="btn btn-warning" style="display:none;">Güncelle</button>
+                    </form>
+
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Başlık</th>
+                            <th>İçerik</th>
+                            <th>İşlemler</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        $blogData = $pdo->query("SELECT * FROM blog ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+                        foreach ($blogData as $row): ?>
+                            <tr id="row_<?= $row['id'] ?>" onclick="selectBlogRow(<?= $row['id'] ?>)">
+                                <td><?= $row['id'] ?></td>
+                                <td><?= htmlspecialchars($row['title']) ?></td>
+                                <td><?= nl2br(htmlspecialchars($row['content'])) ?></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="fillBlogForm(<?= $row['id'] ?>, '<?= addslashes($row['title']) ?>', '<?= addslashes($row['content']) ?>'); return false;">Güncelle</button>
+                                    <a href="?delete_blog=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let selectedRowId = null;
+    let selectedBlogRowId = null;
 
-    function selectRow(id) {
-        if (selectedRowId !== null) {
-            document.getElementById('row_' + selectedRowId).classList.remove('selected-row');
+    function selectBlogRow(id) {
+        if (selectedBlogRowId !== null) {
+            document.getElementById('row_' + selectedBlogRowId).classList.remove('selected-row');
         }
-        selectedRowId = id;
+        selectedBlogRowId = id;
         document.getElementById('row_' + id).classList.add('selected-row');
     }
 
-    function fillAboutForm(id, title, content) {
-        document.getElementById('about_id').value = id;
-        document.getElementById('about_title').value = title;
-        document.getElementById('about_content').value = content;
-        document.getElementById('save_btn').style.display = 'none';
-        document.getElementById('update_btn').style.display = 'inline-block';
-        document.getElementById('about_title').focus();
+    function fillBlogForm(id, title, content) {
+        document.getElementById('blog_id').value = id;
+        document.getElementById('blog_title').value = title;
+        document.getElementById('blog_content').value = content;
+        document.getElementById('save_blog_btn').style.display = 'none';
+        document.getElementById('update_blog_btn').style.display = 'inline-block';
+        document.getElementById('blog_title').focus();
     }
-
-    // Form resetleme için
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelector('form').addEventListener('reset', function() {
-            document.getElementById('save_btn').style.display = 'inline-block';
-            document.getElementById('update_btn').style.display = 'none';
-        });
-    });
 </script>
 </body>
 </html>
