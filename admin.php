@@ -31,7 +31,13 @@ function initializeDatabase($pdo) {
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
             content TEXT
+        )",
+        "CREATE TABLE IF NOT EXISTS gallery (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(100),
+            image_url TEXT
         )"
+
     ];
     foreach ($queries as $query) {
         $pdo->exec($query);
@@ -140,6 +146,29 @@ if (isset($_GET['delete_blog'])) {
     header("Location: admin.php");
     exit;
 }
+
+// POST işlemleri (Gallery)
+if (isset($_POST['save_gallery'])) {
+    $stmt = $pdo->prepare("INSERT INTO gallery (title, image_url) VALUES (?, ?)");
+    $stmt->execute([$_POST['gallery_title'], $_POST['gallery_image']]);
+    header("Location: admin.php");
+    exit;
+}
+
+if (isset($_POST['update_gallery'])) {
+    $stmt = $pdo->prepare("UPDATE gallery SET title = ?, image_url = ? WHERE id = ?");
+    $stmt->execute([$_POST['gallery_title'], $_POST['gallery_image'], $_POST['gallery_id']]);
+    header("Location: admin.php");
+    exit;
+}
+
+if (isset($_GET['delete_gallery'])) {
+    $pdo->prepare("DELETE FROM gallery WHERE id = ?")->execute([$_GET['delete_gallery']]);
+    header("Location: admin.php");
+    exit;
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -265,6 +294,55 @@ if (isset($_GET['delete_blog'])) {
                 </div>
             </div>
         </div>
+
+        <!-- Galeri Bölümü -->
+        <div class="mb-4">
+            <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#gallerySection">➕ Galeri Bölümünü Aç/Kapat</button>
+            <div class="collapse" id="gallerySection">
+                <div class="card card-body shadow">
+                    <form method="post" class="mb-3" action="admin.php">
+                        <input type="hidden" name="gallery_id" id="gallery_id" value="">
+                        <div class="mb-3">
+                            <label>Başlık</label>
+                            <input type="text" name="gallery_title" id="gallery_title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Resim URL</label>
+                            <input type="text" name="gallery_image" id="gallery_image" class="form-control" required>
+                        </div>
+                        <button type="submit" name="save_gallery" id="save_gallery_btn" class="btn btn-success">Kaydet</button>
+                        <button type="submit" name="update_gallery" id="update_gallery_btn" class="btn btn-warning" style="display:none;">Güncelle</button>
+                    </form>
+
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Başlık</th>
+                            <th>Görsel</th>
+                            <th>İşlemler</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        $galleryData = $pdo->query("SELECT * FROM gallery ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+                        foreach ($galleryData as $row): ?>
+                            <tr id="gallery_row_<?= $row['id'] ?>">
+                                <td><?= $row['id'] ?></td>
+                                <td><?= htmlspecialchars($row['title']) ?></td>
+                                <td><img src="<?= htmlspecialchars($row['image_url']) ?>" alt="Resim" style="max-width: 100px;"></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="fillGalleryForm(<?= $row['id'] ?>, '<?= addslashes($row['title']) ?>', '<?= addslashes($row['image_url']) ?>'); return false;">Güncelle</button>
+                                    <a href="?delete_gallery=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -287,6 +365,13 @@ if (isset($_GET['delete_blog'])) {
         document.getElementById('save_blog_btn').style.display = 'none';
         document.getElementById('update_blog_btn').style.display = 'inline-block';
         document.getElementById('blog_title').focus();
+    }
+    function fillGalleryForm(id, title, image) {
+        document.getElementById('gallery_id').value = id;
+        document.getElementById('gallery_title').value = title;
+        document.getElementById('gallery_image').value = image;
+        document.getElementById('save_gallery_btn').style.display = 'none';
+        document.getElementById('update_gallery_btn').style.display = 'inline-block';
     }
 </script>
 </body>
