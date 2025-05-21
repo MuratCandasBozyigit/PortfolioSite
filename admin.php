@@ -101,14 +101,16 @@ if (isset($_POST['save_about'])) {
     header("Location: admin.php");
     exit;
 }
+
 if (isset($_POST['update_about'])) {
-    $stmt = $pdo->prepare("UPDATE about SET title=?, content=? WHERE id=?");
+    $stmt = $pdo->prepare("UPDATE about SET title = ?, content = ? WHERE id = ?");
     $stmt->execute([$_POST['about_title'], $_POST['about_content'], $_POST['about_id']]);
     header("Location: admin.php");
     exit;
 }
+
 if (isset($_GET['delete_about'])) {
-    $pdo->prepare("DELETE FROM about WHERE id=?")->execute([$_GET['delete_about']]);
+    $pdo->prepare("DELETE FROM about WHERE id = ?")->execute([$_GET['delete_about']]);
     header("Location: admin.php");
     exit;
 }
@@ -147,7 +149,7 @@ if (isset($_GET['delete_about'])) {
             <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#aboutSection">➕ Hakkımda Bölümünü Aç/Kapat</button>
             <div class="collapse" id="aboutSection">
                 <div class="card card-body shadow">
-                    <form method="post" class="mb-3">
+                    <form method="post" class="mb-3" action="admin.php">
                         <input type="hidden" name="about_id" id="about_id" value="">
                         <div class="mb-3">
                             <label>Başlık</label>
@@ -157,7 +159,8 @@ if (isset($_GET['delete_about'])) {
                             <label>İçerik</label>
                             <textarea name="about_content" id="about_content" class="form-control" rows="4" required></textarea>
                         </div>
-                        <button type="submit" name="save_about" class="btn btn-success">Kaydet</button>
+                        <button type="submit" name="save_about" id="save_btn" class="btn btn-success">Kaydet</button>
+                        <button type="submit" name="update_about" id="update_btn" class="btn btn-warning" style="display:none;">Güncelle</button>
                     </form>
 
                     <table class="table table-bordered">
@@ -178,7 +181,7 @@ if (isset($_GET['delete_about'])) {
                                 <td><?= htmlspecialchars($row['title']) ?></td>
                                 <td><?= nl2br(htmlspecialchars($row['content'])) ?></td>
                                 <td>
-                                    <button class="btn btn-warning btn-sm" onclick="fillAboutForm(<?= $row['id'] ?>, <?= json_encode($row['title']) ?>, <?= json_encode($row['content']) ?>)">Güncelle</button>
+                                    <button class="btn btn-warning btn-sm" onclick="fillAboutForm(<?= $row['id'] ?>, '<?= addslashes($row['title']) ?>', '<?= addslashes($row['content']) ?>'); return false;">Güncelle</button>
                                     <a href="?delete_about=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</a>
                                 </td>
                             </tr>
@@ -207,26 +210,18 @@ if (isset($_GET['delete_about'])) {
         document.getElementById('about_id').value = id;
         document.getElementById('about_title').value = title;
         document.getElementById('about_content').value = content;
-        document.querySelector('button[name="save_about"]').innerText = 'Güncelle';
-        document.querySelector('button[name="save_about"]').setAttribute('name', 'update_about');
-        document.querySelector('button[name="save_about"]').classList.add('btn-success');
-        document.querySelector('button[name="save_about"]').classList.remove('btn-primary');
+        document.getElementById('save_btn').style.display = 'none';
+        document.getElementById('update_btn').style.display = 'inline-block';
+        document.getElementById('about_title').focus();
     }
 
-    // Detect focus loss to cancel update if user clicks elsewhere
-    document.addEventListener("click", function(event) {
-        let form = document.getElementById("about_title");
-        if (form && !form.contains(event.target) && selectedRowId !== null) {
-            resetForm();
-        }
+    // Form resetleme için
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelector('form').addEventListener('reset', function() {
+            document.getElementById('save_btn').style.display = 'inline-block';
+            document.getElementById('update_btn').style.display = 'none';
+        });
     });
-
-    function resetForm() {
-        document.getElementById('about_title').value = '';
-        document.getElementById('about_content').value = '';
-        document.querySelector('button[name="save_about"]').innerText = 'Kaydet';
-        document.querySelector('button[name="save_about"]').setAttribute('name', 'save_about');
-    }
 </script>
 </body>
 </html>
