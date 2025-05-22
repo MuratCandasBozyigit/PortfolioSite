@@ -19,16 +19,11 @@ try {
 
 // WHOAMI KAYDET
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
-    header('Content-Type: application/json');
-    $content = trim($_POST['whoami_text'] ?? '');
-
+    $content = trim($_POST['whoami_text']);
     if (!empty($content)) {
-        $stmt = $pdo->prepare("INSERT INTO whoami (whoamiContent) VALUES (?)");
-        if ($stmt->execute([$content])) {
-            echo json_encode(['status' => 'success', 'message' => 'Kaydedildi.']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası.']);
-        }
+        $stmt = $pdo->prepare("INSERT INTO whoami (whoamiContent) VALUES (:content)");
+        $stmt->execute(['content' => $content]);
+        echo json_encode(['status' => 'success', 'message' => 'Başarıyla kaydedildi.']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Boş içerik gönderilemez.']);
     }
@@ -38,8 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // WHOAMI GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_whoami') {
     header('Content-Type: application/json');
-
-    $stmt = $pdo->query("SELECT id, whoamiContent, created_at FROM whoami ORDER BY id DESC");
+    $stmt = $pdo->query("SELECT id, whoamiContent FROM whoami ORDER BY id DESC");
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if ($results) {
@@ -49,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     exit;
 }
+
 
 
 
@@ -254,6 +249,7 @@ if (!isset($_SESSION['admin'])) {
             </div>
         </div>
     </div>
+
 
 
 
