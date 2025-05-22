@@ -17,8 +17,9 @@ try {
 }
 
 
+// WHOAMI KAYDET
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
-    header('Content-Type: application/json'); // <--- Bunu ekle
+    header('Content-Type: application/json');
     $content = trim($_POST['whoami_text'] ?? '');
 
     if (!empty($content)) {
@@ -33,6 +34,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
+
+// WHOAMI GETİR
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_whoami') {
+    header('Content-Type: application/json');
+
+    $stmt = $pdo->query("SELECT id, whoamiContent, created_at FROM whoami ORDER BY id DESC");
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($results) {
+        echo json_encode(['status' => 'success', 'data' => $results]);
+    } else {
+        echo json_encode(['status' => 'empty', 'data' => []]);
+    }
+    exit;
+}
+
 
 
 function initializeDatabase($pdo) {
@@ -218,7 +235,7 @@ if (!isset($_SESSION['admin'])) {
 
 <div class="container ">
 
-    <!-- BEN KİMİM -->
+    <!-- WHOAMI Bölümü -->
     <div class="section-collapse">
         <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#whoamiSection">
             🧑‍💼 Ben Kimim?
@@ -226,13 +243,19 @@ if (!isset($_SESSION['admin'])) {
         <div class="collapse" id="whoamiSection">
             <div class="card card-body">
                 <form id="whoamiForm">
-                    <textarea name="whoami_text" class="form-control mb-2" rows="5" placeholder="Kendinizi tanıtın..." required></textarea>
+                    <textarea name="whoami_text" id="whoami_textarea" class="form-control mb-2" rows="5" placeholder="Kendinizi tanıtın..." required></textarea>
                     <button type="submit" class="btn btn-success">Kaydet</button>
                 </form>
                 <div id="whoamiMessage" class="mt-2"></div>
+
+                <hr>
+                <h5 class="mt-3">🗂 Önceki Kayıtlar</h5>
+                <ul id="whoamiList" class="list-group mt-2"></ul>
             </div>
         </div>
     </div>
+
+
 
 
     <!-- HAKKIMDA BÖLÜMÜ -->
@@ -537,35 +560,69 @@ if (!isset($_SESSION['admin'])) {
 </div> <!-- /container -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+<!-- WHOAMI SCRIPT -->
 <script>
-    //AJAX
-    document.getElementById('whoamiForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('whoamiForm');
+        const textarea = document.getElementById('whoami_textarea');
+        const msg = document.getElementById('whoamiMessage');
+        const list = document.getElementById('whoamiList');
 
-        const form = e.target;
-        const formData = new FormData(form);
-        formData.append('action', 'save_whoami');
+        function loadWhoamiList() {
+            fetch('admin.php?action=get_whoami')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = ''; // Önce temizle
+                    if (data.status === 'success') {
+                        data.data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+                            li.textContent = item.whoamiContent;
+                            list.appendChild(li);
+                        });
 
-        fetch('admin.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json()) // JSON olarak al
-            .then(data => {
-                const msg = document.getElementById('whoamiMessage');
-                if (data.status === 'success') {
-                    msg.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-                    form.reset();
-                } else {
-                    msg.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
-                }
+                        // En güncel kayıt textarea'ya yazılsın
+                        if (data.data.length > 0) {
+                            textarea.value = data.data[0].whoamiContent;
+                        }
+                    } else {
+                        list.innerHTML = '<li class="list-group-item text-muted">Hiç kayıt yok.</li>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Veri çekme hatası:', err);
+                    list.innerHTML = '<li class="list-group-item text-danger">Liste yüklenemedi.</li>';
+                });
+        }
+
+        // Sayfa yüklenince veriyi çek
+        loadWhoamiList();
+
+        // Form gönderildiğinde
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            formData.append('action', 'save_whoami');
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
             })
-            .catch(error => {
-                console.error('Hata:', error);
-                document.getElementById('whoamiMessage').innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
-            });
-
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        msg.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                        form.reset();
+                        loadWhoamiList(); // Listeyi güncelle
+                    } else {
+                        msg.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                    }
+                })
+                .catch(err => {
+                    console.error('Kayıt hatası:', err);
+                    msg.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                });
+        });
     });
 </script>
 
