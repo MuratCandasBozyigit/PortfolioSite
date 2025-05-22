@@ -197,8 +197,20 @@ if (!isset($_SESSION['admin'])) {
 
 <div class="container">
 
-    <!-- BLOG Bölümü (Daha önce verdiğinle aynı şekilde bırakıldı) -->
-    <!-- ... (Senin kodun) -->
+    <!-- BEN KİMİM -->
+    <div class="section-collapse">
+        <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#whoamiSection">
+            🧑‍💼 Ben Kimim?
+        </button>
+        <div class="collapse" id="whoamiSection">
+            <div class="card card-body">
+                <form method="post">
+                    <textarea name="whoami_text" class="form-control mb-2" rows="5" placeholder="Kendinizi tanıtın..." required></textarea>
+                    <button type="submit" name="save_whoami" class="btn btn-success">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- HAKKIMDA BÖLÜMÜ -->
     <div class="section-collapse">
@@ -412,6 +424,27 @@ if (!isset($_SESSION['admin'])) {
         </div>
     </div>
 
+    <!-- İLETİŞİM -->
+    <div class="section-collapse">
+        <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#contactSection">
+            ✉️ İletişim Bilgileri
+        </button>
+        <div class="collapse" id="contactSection">
+            <div class="card card-body">
+                <form method="post">
+                    <input type="text" name="contact_phone" class="form-control mb-2" placeholder="Telefon" required>
+                    <input type="email" name="contact_email" class="form-control mb-2" placeholder="E-Posta" required>
+                    <textarea name="contact_address" class="form-control mb-2" rows="3" placeholder="Adres" required></textarea>
+
+                    <input type="url" name="contact_twitter" class="form-control mb-2" placeholder="Twitter Linki (https://twitter.com/kullaniciadi)">
+                    <input type="url" name="contact_linkedin" class="form-control mb-2" placeholder="LinkedIn Linki (https://www.linkedin.com/in/kullaniciadi)">
+                    <input type="url" name="contact_instagram" class="form-control mb-2" placeholder="Instagram Linki (https://instagram.com/kullaniciadi)">
+
+                    <button type="submit" name="save_contact" class="btn btn-success">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- GALERİ BÖLÜMÜ -->
     <div class="section-collapse">
@@ -477,44 +510,6 @@ if (!isset($_SESSION['admin'])) {
             </div>
         </div>
     </div>
-
-    <!-- BEN KİMİM -->
-    <div class="section-collapse">
-        <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#whoamiSection">
-            🧑‍💼 Ben Kimim?
-        </button>
-        <div class="collapse" id="whoamiSection">
-            <div class="card card-body">
-                <form method="post">
-                    <textarea name="whoami_text" class="form-control mb-2" rows="5" placeholder="Kendinizi tanıtın..." required></textarea>
-                    <button type="submit" name="save_whoami" class="btn btn-success">Kaydet</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- İLETİŞİM -->
-    <div class="section-collapse">
-        <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#contactSection">
-            ✉️ İletişim Bilgileri
-        </button>
-        <div class="collapse" id="contactSection">
-            <div class="card card-body">
-                <form method="post">
-                    <input type="text" name="contact_phone" class="form-control mb-2" placeholder="Telefon" required>
-                    <input type="email" name="contact_email" class="form-control mb-2" placeholder="E-Posta" required>
-                    <textarea name="contact_address" class="form-control mb-2" rows="3" placeholder="Adres" required></textarea>
-
-                    <input type="url" name="contact_twitter" class="form-control mb-2" placeholder="Twitter Linki (https://twitter.com/kullaniciadi)">
-                    <input type="url" name="contact_linkedin" class="form-control mb-2" placeholder="LinkedIn Linki (https://www.linkedin.com/in/kullaniciadi)">
-                    <input type="url" name="contact_instagram" class="form-control mb-2" placeholder="Instagram Linki (https://instagram.com/kullaniciadi)">
-
-                    <button type="submit" name="save_contact" class="btn btn-success">Kaydet</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
 
 </div> <!-- /container -->
 
