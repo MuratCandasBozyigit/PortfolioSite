@@ -24,6 +24,12 @@ function initializeDatabase($pdo) {
             username VARCHAR(50) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL
         )",
+        // Ben Kimim
+        "CREATE TABLE IF NOT EXISTS whoami (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            whoamiContent TEXT NOT NULL
+        )",
+
         // İletişim (GÜNCELLENMİŞ)
         "CREATE TABLE IF NOT EXISTS contact (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,11 +40,7 @@ function initializeDatabase($pdo) {
             linkedin VARCHAR(255),
             instagram VARCHAR(255)
         )",
-        // Ben Kimim
-        "CREATE TABLE IF NOT EXISTS whoami (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            whoamiContent TEXT NOT NULL
-        )",
+
         // Hakkımda Tabloları
         "CREATE TABLE IF NOT EXISTS biography (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,8 +65,6 @@ function initializeDatabase($pdo) {
             date DATE,
             description TEXT
         )",
-
-
         //BLOG
         "CREATE TABLE IF NOT EXISTS personal_posts (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -105,7 +105,6 @@ function initializeDatabase($pdo) {
         $pdo->exec($query);
     }
 }
-
 // Giriş kontrolü
 if (!isset($_SESSION['admin'])) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -172,6 +171,7 @@ if (!isset($_SESSION['admin'])) {
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    //Admin LOGİN
     <meta charset="UTF-8">
     <title>Admin Paneli</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -195,7 +195,27 @@ if (!isset($_SESSION['admin'])) {
 </head>
 <body class="bg-light p-4">
 
-<div class="container">
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
+    $content = trim($_POST['whoami_text']);
+
+    if (!empty($content)) {
+        $stmt = $pdo->prepare("INSERT INTO whoami (whoamiContent) VALUES (?)");
+        if ($stmt->execute([$content])) {
+            echo json_encode(['status' => 'success', 'message' => 'Kaydedildi.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası.']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Boş içerik gönderilemez.']);
+    }
+    exit;
+}
+?>
+
+
+<div class="container ">
 
     <!-- BEN KİMİM -->
     <div class="section-collapse">
@@ -204,13 +224,15 @@ if (!isset($_SESSION['admin'])) {
         </button>
         <div class="collapse" id="whoamiSection">
             <div class="card card-body">
-                <form method="post">
+                <form id="whoamiForm">
                     <textarea name="whoami_text" class="form-control mb-2" rows="5" placeholder="Kendinizi tanıtın..." required></textarea>
-                    <button type="submit" name="save_whoami" class="btn btn-success">Kaydet</button>
+                    <button type="submit" class="btn btn-success">Kaydet</button>
                 </form>
+                <div id="whoamiMessage" class="mt-2"></div>
             </div>
         </div>
     </div>
+
 
     <!-- HAKKIMDA BÖLÜMÜ -->
     <div class="section-collapse">
@@ -514,5 +536,36 @@ if (!isset($_SESSION['admin'])) {
 </div> <!-- /container -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    //AJAX
+    document.getElementById('whoamiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+        formData.append('action', 'save_whoami');
+
+        fetch('admin.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                const msg = document.getElementById('whoamiMessage');
+                if (data.status === 'success') {
+                    msg.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                    form.reset();
+                } else {
+                    msg.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                document.getElementById('whoamiMessage').innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+            });
+    });
+</script>
+
 </body>
 </html>
