@@ -43,6 +43,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     exit;
 }
+// WHOAMI GÜNCELLE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_whoami') {
+    $id = (int) $_POST['id'];
+    $content = trim($_POST['content']);
+
+    if ($id && $content) {
+        $stmt = $pdo->prepare("UPDATE whoami SET whoamiContent = :content WHERE id = :id");
+        $stmt->execute(['content' => $content, 'id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Kayıt güncellendi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Eksik veri.']);
+    }
+    exit;
+}
+
+// WHOAMI SİL
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_whoami') {
+    $id = (int) $_POST['id'];
+
+    if ($id) {
+        $stmt = $pdo->prepare("DELETE FROM whoami WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Kayıt silindi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'ID bulunamadı.']);
+    }
+    exit;
+}
+
 
 
 
@@ -572,12 +601,41 @@ if (!isset($_SESSION['admin'])) {
                     if (data.status === 'success') {
                         data.data.forEach(item => {
                             const li = document.createElement('li');
-                            li.className = 'list-group-item';
-                            li.textContent = item.whoamiContent;
+                            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                            const contentDiv = document.createElement('div');
+                            contentDiv.textContent = item.whoamiContent;
+
+                            const buttonGroup = document.createElement('div');
+                            buttonGroup.className = 'btn-group btn-group-sm';
+
+                            const updateBtn = document.createElement('button');
+                            updateBtn.textContent = 'Güncelle';
+                            updateBtn.className = 'btn btn-warning';
+                            updateBtn.onclick = function () {
+                                const newContent = prompt('Yeni içerik:', item.whoamiContent);
+                                if (newContent !== null && newContent.trim() !== '') {
+                                    updateWhoami(item.id, newContent);
+                                }
+                            };
+
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = 'Sil';
+                            deleteBtn.className = 'btn btn-danger';
+                            deleteBtn.onclick = function () {
+                                if (confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+                                    deleteWhoami(item.id);
+                                }
+                            };
+
+                            buttonGroup.appendChild(updateBtn);
+                            buttonGroup.appendChild(deleteBtn);
+
+                            li.appendChild(contentDiv);
+                            li.appendChild(buttonGroup);
                             list.appendChild(li);
                         });
 
-                        // En güncel kayıt textarea'ya yazılsın
                         if (data.data.length > 0) {
                             textarea.value = data.data[0].whoamiContent;
                         }
@@ -588,6 +646,39 @@ if (!isset($_SESSION['admin'])) {
                 .catch(err => {
                     console.error('Veri çekme hatası:', err);
                     list.innerHTML = '<li class="list-group-item text-danger">Liste yüklenemedi.</li>';
+                });
+        }
+
+        function updateWhoami(id, content) {
+            const formData = new FormData();
+            formData.append('action', 'update_whoami');
+            formData.append('id', id);
+            formData.append('content', content);
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    loadWhoamiList();
+                });
+        }
+
+        function deleteWhoami(id) {
+            const formData = new FormData();
+            formData.append('action', 'delete_whoami');
+            formData.append('id', id);
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    loadWhoamiList();
                 });
         }
 
@@ -621,6 +712,7 @@ if (!isset($_SESSION['admin'])) {
         });
     });
 </script>
+
 
 </body>
 </html>
