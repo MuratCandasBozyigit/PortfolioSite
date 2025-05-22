@@ -16,6 +16,25 @@ try {
     die("Veritabanı bağlantısı başarısız: " . $e->getMessage());
 }
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
+    header('Content-Type: application/json'); // <--- Bunu ekle
+    $content = trim($_POST['whoami_text'] ?? '');
+
+    if (!empty($content)) {
+        $stmt = $pdo->prepare("INSERT INTO whoami (whoamiContent) VALUES (?)");
+        if ($stmt->execute([$content])) {
+            echo json_encode(['status' => 'success', 'message' => 'Kaydedildi.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası.']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Boş içerik gönderilemez.']);
+    }
+    exit;
+}
+
+
 function initializeDatabase($pdo) {
     $queries = [
         // Kullanıcılar
@@ -195,25 +214,6 @@ if (!isset($_SESSION['admin'])) {
 <body class="bg-light p-4">
 
 
-<?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
-    header('Content-Type: application/json'); // <--- Bunu ekle
-    $content = trim($_POST['whoami_text'] ?? '');
-
-    if (!empty($content)) {
-        $stmt = $pdo->prepare("INSERT INTO whoami (whoamiContent) VALUES (?)");
-        if ($stmt->execute([$content])) {
-            echo json_encode(['status' => 'success', 'message' => 'Kaydedildi.']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası.']);
-        }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Boş içerik gönderilemez.']);
-    }
-    exit;
-}
-
-?>
 
 
 <div class="container ">
