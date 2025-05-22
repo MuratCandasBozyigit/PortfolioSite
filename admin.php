@@ -141,6 +141,192 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 
 
+// BIOGRAPHY KAYDET
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_biography') {
+    $content = trim($_POST['content']);
+    if (!empty($content)) {
+        $stmt = $pdo->prepare("INSERT INTO biography (content) VALUES (:content)");
+        $stmt->execute(['content' => $content]);
+        echo json_encode(['status' => 'success', 'message' => 'Biyografi başarıyla kaydedildi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Biyografi alanı boş olamaz.']);
+    }
+    exit;
+}
+
+// BIOGRAPHY GETİR
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_biography') {
+    header('Content-Type: application/json');
+    $stmt = $pdo->query("SELECT id, content FROM biography ORDER BY id DESC");
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($results) {
+        echo json_encode(['status' => 'success', 'data' => $results]);
+    } else {
+        echo json_encode(['status' => 'empty', 'data' => []]);
+    }
+    exit;
+}
+
+// BIOGRAPHY GÜNCELLE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_biography') {
+    $id = (int) $_POST['id'];
+    $content = trim($_POST['content']);
+
+    if ($id && $content) {
+        $stmt = $pdo->prepare("UPDATE biography SET content = :content WHERE id = :id");
+        $stmt->execute(['content' => $content, 'id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Biyografi güncellendi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Eksik veri.']);
+    }
+    exit;
+}
+
+// BIOGRAPHY SİL
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_biography') {
+    $id = (int) $_POST['id'];
+
+    if ($id) {
+        $stmt = $pdo->prepare("DELETE FROM biography WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Biyografi silindi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'ID bulunamadı.']);
+    }
+    exit;
+}
+
+// İlgi Alanlarım - KAYDET
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_interests') {
+    $content = trim($_POST['interests_text']);
+    if (!empty($content)) {
+        $stmt = $pdo->prepare("INSERT INTO interests (content) VALUES (:content)");
+        $stmt->execute(['content' => $content]);
+        echo json_encode(['status' => 'success', 'message' => 'İlgi alanı başarıyla kaydedildi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Boş içerik gönderilemez.']);
+    }
+    exit;
+}
+
+// İlgi Alanlarım - GETİR
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_interests') {
+    header('Content-Type: application/json');
+    $stmt = $pdo->query("SELECT id, content FROM interests ORDER BY id DESC");
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'status' => $results ? 'success' : 'empty',
+        'data' => $results
+    ]);
+    exit;
+}
+
+// İlgi Alanlarım - GÜNCELLE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_interests') {
+    $id = (int) $_POST['id'];
+    $content = trim($_POST['content']);
+
+    if ($id && $content) {
+        $stmt = $pdo->prepare("UPDATE interests SET content = :content WHERE id = :id");
+        $stmt->execute(['content' => $content, 'id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Kayıt güncellendi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Eksik veri.']);
+    }
+    exit;
+}
+
+// İlgi Alanlarım - SİL
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_interests') {
+    $id = (int) $_POST['id'];
+
+    if ($id) {
+        $stmt = $pdo->prepare("DELETE FROM interests WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Kayıt silindi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'ID bulunamadı.']);
+    }
+    exit;
+}
+
+// Eğitim ve Deneyim - EKLE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_education') {
+    $title = trim($_POST['edu_title']);
+    $institution = trim($_POST['edu_institution']);
+    $start_date = $_POST['edu_start_date'] ?: null;
+    $end_date = $_POST['edu_end_date'] ?: null;
+    $description = trim($_POST['edu_description']);
+
+    if ($title && $institution) {
+        $stmt = $pdo->prepare("INSERT INTO education_experience (title, institution, start_date, end_date, description) VALUES (:title, :institution, :start_date, :end_date, :description)");
+        $stmt->execute([
+            'title' => $title,
+            'institution' => $institution,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'description' => $description
+        ]);
+        echo json_encode(['status' => 'success', 'message' => 'Eğitim/deneyim başarıyla eklendi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Zorunlu alanlar eksik.']);
+    }
+    exit;
+}
+
+// Eğitim ve Deneyim - GETİR
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_education') {
+    header('Content-Type: application/json');
+    $stmt = $pdo->query("SELECT * FROM education_experience ORDER BY start_date DESC");
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(['status' => $results ? 'success' : 'empty', 'data' => $results]);
+    exit;
+}
+
+// Eğitim ve Deneyim - GÜNCELLE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_education')  {
+    $id = (int) $_POST['id'];
+    $title = trim($_POST['title']);
+    $institution = trim($_POST['institution']);
+    $start_date = $_POST['start_date'] ?: null;
+    $end_date = $_POST['end_date'] ?: null;
+    $description = trim($_POST['description']);
+
+    if ($id && $title && $institution) {
+        $stmt = $pdo->prepare("UPDATE education_experience SET title = :title, institution = :institution, start_date = :start_date, end_date = :end_date, description = :description WHERE id = :id");
+        $stmt->execute([
+            'id' => $id,
+            'title' => $title,
+            'institution' => $institution,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'description' => $description
+        ]);
+        echo json_encode(['status' => 'success', 'message' => 'Kayıt güncellendi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Eksik veri.']);
+    }
+    exit;
+}
+
+// Eğitim ve Deneyim - SİL
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_education') {
+    $id = (int) $_POST['id'];
+    if ($id) {
+        $stmt = $pdo->prepare("DELETE FROM education_experience WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        echo json_encode(['status' => 'success', 'message' => 'Kayıt silindi.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Geçersiz ID.']);
+    }
+    exit;
+}
+
+
+
+
 function initializeDatabase($pdo) {
     $queries = [
         // Kullanıcılar
@@ -154,7 +340,6 @@ function initializeDatabase($pdo) {
             id INT AUTO_INCREMENT PRIMARY KEY,
             whoamiContent TEXT NOT NULL
         )",
-
         // İletişim (GÜNCELLENMİŞ)
         "CREATE TABLE IF NOT EXISTS contact (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -166,6 +351,7 @@ function initializeDatabase($pdo) {
             instagram VARCHAR(255)
         )",
 
+
         // Hakkımda Tabloları
         "CREATE TABLE IF NOT EXISTS biography (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -173,7 +359,7 @@ function initializeDatabase($pdo) {
         )",
         "CREATE TABLE IF NOT EXISTS interests (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            interest VARCHAR(255) NOT NULL
+            content TEXT NOT NULL
         )",
         "CREATE TABLE IF NOT EXISTS education_experience (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -353,7 +539,7 @@ if (!isset($_SESSION['admin'])) {
             <div class="card card-body">
                 <div class="accordion" id="aboutAccordion">
 
-                    <!-- Biyografi -->
+                    <!-- 🧬 Biyografi -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bioCollapse">
@@ -362,10 +548,15 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="bioCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                             <div class="accordion-body">
-                                <form method="post">
-                                    <textarea name="about_biography" class="form-control mb-2" rows="4" placeholder="Kendinizden bahsedin..." required></textarea>
-                                    <button type="submit" name="save_biography" class="btn btn-success">Kaydet</button>
+                                <form id="biographyForm">
+                                    <textarea name="content" id="biography_textarea" class="form-control mb-2" rows="4" placeholder="Kendinizden bahsedin..." required></textarea>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+                                <div id="biographyMessage" class="mt-2"></div>
+
+                                <hr>
+                                <h5>📜 Kayıtlı Biyografiler</h5>
+                                <ul id="biographyList" class="list-group mt-2"></ul>
                             </div>
                         </div>
                     </div>
@@ -379,10 +570,14 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="interestsCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                             <div class="accordion-body">
-                                <form method="post">
-                                    <textarea name="about_interests" class="form-control mb-2" rows="4" placeholder="Hobileriniz, tutkularınız..." required></textarea>
-                                    <button type="submit" name="save_interests" class="btn btn-success">Kaydet</button>
+                                <form id="interestsForm">
+                                    <textarea name="interests_text" id="interests_textarea" class="form-control mb-2" rows="4" placeholder="Hobileriniz, tutkularınız..." required></textarea>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+                                <div id="interestsMessage" class="mt-2"></div>
+                                <hr>
+                                <h6>📌 Önceki Kayıtlar</h6>
+                                <ul id="interestsList" class="list-group mt-2"></ul>
                             </div>
                         </div>
                     </div>
@@ -396,29 +591,36 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="eduExpCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                             <div class="accordion-body">
-                                <form method="post">
+                                <form id="educationForm">
+                                    <input type="hidden" name="action" value="save_education">
                                     <div class="mb-2">
-                                        <input type="text" name="edu_title" class="form-control" placeholder="Başlık (örn. Bilgisayar Mühendisliği)" required>
+                                        <input type="text" name="edu_title" class="form-control" placeholder="Başlık" required>
                                     </div>
                                     <div class="mb-2">
-                                        <input type="text" name="edu_institution" class="form-control" placeholder="Kurum (örn. Boğaziçi Üniversitesi)" required>
+                                        <input type="text" name="edu_institution" class="form-control" placeholder="Kurum" required>
                                     </div>
                                     <div class="mb-2">
-                                        <label>Başlangıç Tarihi</label>
-                                        <input type="date" name="edu_start_date" class="form-control">
+                                        <input type="date" name="edu_start_date" class="form-control" placeholder="Başlangıç Tarihi">
                                     </div>
                                     <div class="mb-2">
-                                        <label>Bitiş Tarihi</label>
-                                        <input type="date" name="edu_end_date" class="form-control">
+                                        <input type="date" name="edu_end_date" class="form-control" placeholder="Bitiş Tarihi">
                                     </div>
                                     <div class="mb-2">
-                                        <textarea name="edu_description" class="form-control" rows="3" placeholder="Açıklama (örn. 4 yıllık lisans programı...)"></textarea>
+                                        <textarea name="edu_description" class="form-control" rows="3" placeholder="Açıklama"></textarea>
                                     </div>
-                                    <button type="submit" name="save_education" class="btn btn-success">Kaydet</button>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+
+                                <!-- Bootstrap mesaj yeri -->
+                                <div id="eduMessage" class="mt-2"></div>
+
+                                <!-- Listeleme alanı -->
+                                <ul id="educationList" class="list-group mt-3"></ul>
                             </div>
                         </div>
                     </div>
+
+
 
                     <!-- Sertifikalar ve Başarılar -->
                     <div class="accordion-item">
@@ -579,7 +781,6 @@ if (!isset($_SESSION['admin'])) {
             </div>
         </div>
     </div>
-
 
     <!-- GALERİ BÖLÜMÜ -->
     <div class="section-collapse">
@@ -883,6 +1084,385 @@ if (!isset($_SESSION['admin'])) {
                     if (data.status === 'success') contactForm.reset();
                     loadContacts();
                 });
+        });
+    });
+</script>
+<!--HAKKIMDA SCRİPT-->
+<!--Biyografi-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const bioForm = document.getElementById('biographyForm');
+        const bioTextarea = document.getElementById('biography_textarea');
+        const bioMessage = document.getElementById('biographyMessage');
+        const bioList = document.getElementById('biographyList');
+
+        function loadBiographies() {
+            fetch('admin.php?action=get_biography')
+                .then(res => res.json())
+                .then(data => {
+                    bioList.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                            const contentDiv = document.createElement('div');
+                            contentDiv.textContent = item.content;
+
+                            const btnGroup = document.createElement('div');
+                            btnGroup.className = 'btn-group btn-group-sm';
+
+                            const updateBtn = document.createElement('button');
+                            updateBtn.textContent = 'Güncelle';
+                            updateBtn.className = 'btn btn-warning';
+                            updateBtn.onclick = function () {
+                                const newContent = prompt('Yeni içerik:', item.content);
+                                if (newContent !== null && newContent.trim() !== '') {
+                                    updateBiography(item.id, newContent);
+                                }
+                            };
+
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = 'Sil';
+                            deleteBtn.className = 'btn btn-danger';
+                            deleteBtn.onclick = function () {
+                                if (confirm('Bu kaydı silmek istiyor musunuz?')) {
+                                    deleteBiography(item.id);
+                                }
+                            };
+
+                            btnGroup.appendChild(updateBtn);
+                            btnGroup.appendChild(deleteBtn);
+
+                            li.appendChild(contentDiv);
+                            li.appendChild(btnGroup);
+                            bioList.appendChild(li);
+                        });
+
+                        if (data.data.length > 0) {
+                            bioTextarea.value = data.data[0].content;
+                        }
+                    } else {
+                        bioList.innerHTML = '<li class="list-group-item text-muted">Kayıt bulunamadı.</li>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Biyografi verisi alınamadı:', err);
+                    bioList.innerHTML = '<li class="list-group-item text-danger">Yüklenemedi.</li>';
+                });
+        }
+
+        function updateBiography(id, content) {
+            const formData = new FormData();
+            formData.append('action', 'update_biography');
+            formData.append('id', id);
+            formData.append('content', content);
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    bioMessage.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    loadBiographies();
+                });
+        }
+
+        function deleteBiography(id) {
+            const formData = new FormData();
+            formData.append('action', 'delete_biography');
+            formData.append('id', id);
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    bioMessage.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    loadBiographies();
+                });
+        }
+
+        // Sayfa yüklenince veriyi çek
+        loadBiographies();
+
+        // Form gönderimi
+        bioForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(bioForm);
+            formData.append('action', 'save_biography');
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    bioMessage.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    if (data.status === 'success') {
+                        bioForm.reset();
+                        loadBiographies();
+                    }
+                })
+                .catch(err => {
+                    console.error('Kayıt hatası:', err);
+                    bioMessage.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                });
+        });
+    });
+</script>
+<!-- İlgi Alanlarım -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('interestsForm');
+        const textarea = document.getElementById('interests_textarea');
+        const msg = document.getElementById('interestsMessage');
+        const list = document.getElementById('interestsList');
+
+        function loadInterestsList() {
+            fetch('admin.php?action=get_interests')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                            const contentDiv = document.createElement('div');
+                            contentDiv.textContent = item.content;
+
+                            const buttonGroup = document.createElement('div');
+                            buttonGroup.className = 'btn-group btn-group-sm';
+
+                            const updateBtn = document.createElement('button');
+                            updateBtn.className = 'btn btn-warning';
+                            updateBtn.textContent = 'Güncelle';
+                            updateBtn.onclick = () => {
+                                const newContent = prompt('Yeni içerik:', item.content);
+                                if (newContent && newContent.trim() !== '') {
+                                    updateInterest(item.id, newContent);
+                                }
+                            };
+
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'btn btn-danger';
+                            deleteBtn.textContent = 'Sil';
+                            deleteBtn.onclick = () => {
+                                if (confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+                                    deleteInterest(item.id);
+                                }
+                            };
+
+                            buttonGroup.appendChild(updateBtn);
+                            buttonGroup.appendChild(deleteBtn);
+
+                            li.appendChild(contentDiv);
+                            li.appendChild(buttonGroup);
+                            list.appendChild(li);
+                        });
+
+                        if (data.data.length > 0) {
+                            textarea.value = data.data[0].content;
+                        }
+                    } else {
+                        list.innerHTML = '<li class="list-group-item text-muted">Kayıt bulunamadı.</li>';
+                    }
+                })
+                .catch(err => {
+                    list.innerHTML = '<li class="list-group-item text-danger">Yükleme hatası!</li>';
+                    console.error('Listeleme hatası:', err);
+                });
+        }
+
+        function updateInterest(id, content) {
+            const formData = new FormData();
+            formData.append('action', 'update_interests');
+            formData.append('id', id);
+            formData.append('content', content);
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    loadInterestsList();
+                });
+        }
+
+        function deleteInterest(id) {
+            const formData = new FormData();
+            formData.append('action', 'delete_interests');
+            formData.append('id', id);
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    loadInterestsList();
+                });
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            formData.append('action', 'save_interests');
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    if (data.status === 'success') {
+                        form.reset();
+                        loadInterestsList();
+                    }
+                })
+                .catch(err => {
+                    msg.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                    console.error('Kayıt hatası:', err);
+                });
+        });
+
+        loadInterestsList(); // Sayfa açıldığında otomatik yükle
+    });
+</script>
+<!-- Eğitim ve Deneyim -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('educationForm');
+        const list = document.getElementById('educationList');
+        const messageBox = document.getElementById('eduMessage');
+
+        function showMessage(type, text) {
+            messageBox.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+            setTimeout(() => messageBox.innerHTML = '', 4000);
+        }
+
+        // Eğitim ekle
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
+                    if (data.status === 'success') {
+                        form.reset();
+                        fetchEducation();
+                    }
+                });
+        });
+
+        // Listele
+        function fetchEducation() {
+            fetch('admin.php?action=get_education')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.data.forEach(item => {
+                            list.innerHTML += `
+                            <li class="list-group-item d-flex justify-content-between align-items-start" data-id="${item.id}">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">${item.title} - ${item.institution}</div>
+                                    ${item.start_date || ''} - ${item.end_date || ''}<br>
+                                    ${item.description || ''}
+                                </div>
+                                <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                                <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                            </li>
+                        `;
+                        });
+                    } else {
+                        list.innerHTML = '<li class="list-group-item">Kayıt bulunamadı.</li>';
+                    }
+                });
+        }
+
+        fetchEducation();
+
+        // Sil
+        list.addEventListener('click', function (e) {
+            if (e.target.classList.contains('delete-btn')) {
+                const li = e.target.closest('li');
+                const id = li.dataset.id;
+                const formData = new FormData();
+                formData.append('action', 'delete_education');
+                formData.append('id', id);
+                fetch('admin.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
+                        fetchEducation();
+                    });
+            }
+
+            // Güncelle - inline form
+            if (e.target.classList.contains('update-btn')) {
+                const li = e.target.closest('li');
+                const id = li.dataset.id;
+                const contentDiv = li.querySelector('.ms-2');
+
+                const [titleInst, dates, desc] = contentDiv.innerHTML.split('<br>');
+                const [title, institution] = titleInst.replace(/<\/?div.*?>/g, '').split(' - ');
+
+                contentDiv.innerHTML = `
+                <input class="form-control mb-1" name="title" value="${title.trim()}">
+                <input class="form-control mb-1" name="institution" value="${institution.trim()}">
+                <input class="form-control mb-1" type="date" name="start_date">
+                <input class="form-control mb-1" type="date" name="end_date">
+                <textarea class="form-control mb-1" name="description">${desc.trim()}</textarea>
+                <button class="btn btn-sm btn-success save-btn">Kaydet</button>
+            `;
+
+                li.querySelector('.update-btn').remove();
+            }
+
+            // Güncelle Kaydet
+            if (e.target.classList.contains('save-btn')) {
+                const li = e.target.closest('li');
+                const id = li.dataset.id;
+                const title = li.querySelector('input[name="title"]').value;
+                const institution = li.querySelector('input[name="institution"]').value;
+                const start_date = li.querySelector('input[name="start_date"]').value;
+                const end_date = li.querySelector('input[name="end_date"]').value;
+                const description = li.querySelector('textarea[name="description"]').value;
+
+                const formData = new FormData();
+                formData.append('action', 'update_education');
+                formData.append('id', id);
+                formData.append('title', title);
+                formData.append('institution', institution);
+                formData.append('start_date', start_date);
+                formData.append('end_date', end_date);
+                formData.append('description', description);
+
+                fetch('admin.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
+                        fetchEducation();
+                    });
+            }
         });
     });
 </script>
