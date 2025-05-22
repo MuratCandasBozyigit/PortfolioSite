@@ -24,18 +24,30 @@ function initializeDatabase($pdo) {
             username VARCHAR(50) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL
         )",
-
+        // İletişim (GÜNCELLENMİŞ)
+        "CREATE TABLE IF NOT EXISTS contact (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            phone VARCHAR(20),
+            email VARCHAR(255),
+            address TEXT,
+            twitter VARCHAR(255),
+            linkedin VARCHAR(255),
+            instagram VARCHAR(255)
+        )",
+        // Ben Kimim
+        "CREATE TABLE IF NOT EXISTS whoami (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            whoamiContent TEXT NOT NULL
+        )",
         // Hakkımda Tabloları
         "CREATE TABLE IF NOT EXISTS biography (
             id INT AUTO_INCREMENT PRIMARY KEY,
             content TEXT NOT NULL
         )",
-
         "CREATE TABLE IF NOT EXISTS interests (
             id INT AUTO_INCREMENT PRIMARY KEY,
             interest VARCHAR(255) NOT NULL
         )",
-
         "CREATE TABLE IF NOT EXISTS education_experience (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL, 
@@ -44,7 +56,6 @@ function initializeDatabase($pdo) {
             end_date DATE,
             description TEXT
         )",
-
         "CREATE TABLE IF NOT EXISTS achievements (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
@@ -53,11 +64,7 @@ function initializeDatabase($pdo) {
             description TEXT
         )",
 
-        // Ben Kimim
-        "CREATE TABLE IF NOT EXISTS whoami (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            whoamiContent TEXT NOT NULL
-        )",
+
 
         // Blog
         "CREATE TABLE IF NOT EXISTS blog_entries (
@@ -75,16 +82,7 @@ function initializeDatabase($pdo) {
             image_url TEXT
         )",
 
-        // İletişim (GÜNCELLENMİŞ)
-        "CREATE TABLE IF NOT EXISTS contact (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            phone VARCHAR(20),
-            email VARCHAR(255),
-            address TEXT,
-            twitter VARCHAR(255),
-            linkedin VARCHAR(255),
-            instagram VARCHAR(255)
-        )"
+
     ];
 
     foreach ($queries as $query) {
@@ -239,14 +237,30 @@ if (!isset($_SESSION['admin'])) {
                         <div id="eduExpCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                             <div class="accordion-body">
                                 <form method="post">
-                                    <textarea name="about_education" class="form-control mb-2" rows="4" placeholder="Eğitim hayatınız, iş tecrübeleriniz..." required></textarea>
+                                    <div class="mb-2">
+                                        <input type="text" name="edu_title" class="form-control" placeholder="Başlık (örn. Bilgisayar Mühendisliği)" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="text" name="edu_institution" class="form-control" placeholder="Kurum (örn. Boğaziçi Üniversitesi)" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Başlangıç Tarihi</label>
+                                        <input type="date" name="edu_start_date" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Bitiş Tarihi</label>
+                                        <input type="date" name="edu_end_date" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <textarea name="edu_description" class="form-control" rows="3" placeholder="Açıklama (örn. 4 yıllık lisans programı...)"></textarea>
+                                    </div>
                                     <button type="submit" name="save_education" class="btn btn-success">Kaydet</button>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Sertifikalar -->
+                    <!-- Sertifikalar ve Başarılar -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#certCollapse">
@@ -256,8 +270,20 @@ if (!isset($_SESSION['admin'])) {
                         <div id="certCollapse" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                             <div class="accordion-body">
                                 <form method="post">
-                                    <textarea name="about_certificates" class="form-control mb-2" rows="4" placeholder="Aldığınız ödüller, sertifikalar..." required></textarea>
-                                    <button type="submit" name="save_certificates" class="btn btn-success">Kaydet</button>
+                                    <div class="mb-2">
+                                        <input type="text" name="ach_title" class="form-control" placeholder="Sertifika/Başarı Başlığı (örn. Google Developer Sertifikası)" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="text" name="ach_issuer" class="form-control" placeholder="Veren Kurum (örn. Google)">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Veriliş Tarihi</label>
+                                        <input type="date" name="ach_date" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <textarea name="ach_description" class="form-control" rows="3" placeholder="Açıklama (örn. Bulut teknolojileri üzerine 6 haftalık program...)"></textarea>
+                                    </div>
+                                    <button type="submit" name="save_achievement" class="btn btn-success">Kaydet</button>
                                 </form>
                             </div>
                         </div>
