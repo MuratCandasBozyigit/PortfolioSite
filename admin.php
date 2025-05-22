@@ -65,11 +65,27 @@ function initializeDatabase($pdo) {
         )",
 
 
-
-        // Blog
-        "CREATE TABLE IF NOT EXISTS blog_entries (
+        //BLOG
+        "CREATE TABLE IF NOT EXISTS personal_posts (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            category VARCHAR(100) NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )",
+        "CREATE TABLE IF NOT EXISTS travel_notes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )",
+        "CREATE TABLE IF NOT EXISTS book_film_recommendations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )",
+        "CREATE TABLE IF NOT EXISTS tech_interests (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             content TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -293,6 +309,109 @@ if (!isset($_SESSION['admin'])) {
             </div>
         </div>
     </div>
+
+    <!-- BLOG BÖLÜMÜ -->
+    <div class="section-collapse">
+        <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#blogSection">
+            📝 Blog Bölümünü Aç/Kapat
+        </button>
+        <div class="collapse" id="blogSection">
+            <div class="card card-body">
+                <div class="accordion" id="blogAccordion">
+
+                    <!-- Kişisel Yazılar -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#personalCollapse">
+                                🧠 Kişisel Yazılar
+                            </button>
+                        </h2>
+                        <div id="personalCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
+                            <div class="accordion-body">
+                                <form method="post">
+                                    <div class="mb-2">
+                                        <input type="text" name="personal_title" class="form-control" placeholder="Yazı Başlığı" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <textarea name="personal_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                    </div>
+                                    <button type="submit" name="save_personal" class="btn btn-success">Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seyahat Notları -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#travelCollapse">
+                                🌍 Seyahat Notları
+                            </button>
+                        </h2>
+                        <div id="travelCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
+                            <div class="accordion-body">
+                                <form method="post">
+                                    <div class="mb-2">
+                                        <input type="text" name="travel_title" class="form-control" placeholder="Yazı Başlığı" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <textarea name="travel_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                    </div>
+                                    <button type="submit" name="save_travel" class="btn btn-success">Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kitap & Film Önerileri -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bookFilmCollapse">
+                                📚 Kitap & Film Önerileri
+                            </button>
+                        </h2>
+                        <div id="bookFilmCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
+                            <div class="accordion-body">
+                                <form method="post">
+                                    <div class="mb-2">
+                                        <input type="text" name="book_film_title" class="form-control" placeholder="Başlık" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <textarea name="book_film_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                    </div>
+                                    <button type="submit" name="save_book_film" class="btn btn-success">Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teknoloji & İlgi Alanları -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#techCollapse">
+                                💻 Teknoloji & İlgi Alanları
+                            </button>
+                        </h2>
+                        <div id="techCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
+                            <div class="accordion-body">
+                                <form method="post">
+                                    <div class="mb-2">
+                                        <input type="text" name="tech_title" class="form-control" placeholder="Başlık" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <textarea name="tech_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                    </div>
+                                    <button type="submit" name="save_tech" class="btn btn-success">Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> <!-- blogAccordion -->
+            </div>
+        </div>
+    </div>
+
 
     <!-- GALERİ BÖLÜMÜ -->
     <div class="section-collapse">
