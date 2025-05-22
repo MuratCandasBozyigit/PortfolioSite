@@ -96,7 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     echo json_encode(['status' => 'success', 'data' => $results]);
     exit;
 }
-
 // İLETİŞİM BİLGİSİ GÜNCELLE (DÜZELTİLMİŞ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_contact') {
     header('Content-Type: application/json');
@@ -138,6 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
+
 
 
 
