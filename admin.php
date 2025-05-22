@@ -88,7 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-
 // İLETİŞİM BİLGİLERİ GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_contact') {
     header('Content-Type: application/json');
@@ -98,39 +97,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     exit;
 }
 
-// İLETİŞİM BİLGİSİ GÜNCELLE
+// İLETİŞİM BİLGİSİ GÜNCELLE (DÜZELTİLMİŞ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_contact') {
-    $id = (int)$_POST['id'];
-    $phone = trim($_POST['contact_phone']);
-    $email = trim($_POST['contact_email']);
-    $address = trim($_POST['contact_address']);
-    $twitter = trim($_POST['contact_twitter']);
-    $linkedin = trim($_POST['contact_linkedin']);
-    $instagram = trim($_POST['contact_instagram']);
+    header('Content-Type: application/json');
+    try {
+        $id = (int)$_POST['id'];
+        $phone = trim($_POST['contact_phone']);
+        $email = trim($_POST['contact_email']);
+        $address = trim($_POST['contact_address']);
+        $twitter = trim($_POST['contact_twitter']);
+        $linkedin = trim($_POST['contact_linkedin']);
+        $instagram = trim($_POST['contact_instagram']);
 
-    if ($id && $phone && $email && $address) {
-        $stmt = $pdo->prepare("UPDATE contact SET phone=?, email=?, address=?, twitter=?, linkedin=?, instagram=? WHERE id=?");
-        $stmt->execute([$phone, $email, $address, $twitter, $linkedin, $instagram, $id]);
-        echo json_encode(['status' => 'success', 'message' => 'Kayıt güncellendi.']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Eksik bilgi.']);
+        if ($id && $phone && $email && $address) {
+            $stmt = $pdo->prepare("UPDATE contact SET phone=?, email=?, address=?, twitter=?, linkedin=?, instagram=? WHERE id=?");
+            $stmt->execute([$phone, $email, $address, $twitter, $linkedin, $instagram, $id]);
+            echo json_encode(['status' => 'success', 'message' => 'Kayıt güncellendi.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Zorunlu alanlar boş olamaz!']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Güncelleme hatası: ' . $e->getMessage()]); // Hata mesajını göster
     }
     exit;
 }
-
-// İLETİŞİM BİLGİSİ SİL
+// İLETİŞİM BİLGİSİ SİL (DÜZELTİLMİŞ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_contact') {
-    $id = (int)$_POST['id'];
-    if ($id) {
-        $stmt = $pdo->prepare("DELETE FROM contact WHERE id = ?");
-        $stmt->execute([$id]);
-        echo json_encode(['status' => 'success', 'message' => 'Kayıt silindi.']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'ID eksik.']);
+    header('Content-Type: application/json');
+    try {
+        $id = (int)$_POST['id'];
+        if ($id) {
+            $stmt = $pdo->prepare("DELETE FROM contact WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success', 'message' => 'Kayıt silindi.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'ID eksik.']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Silme hatası: ' . $e->getMessage()]); // Hata mesajını göster
     }
     exit;
 }
-
 
 
 
@@ -336,10 +343,6 @@ if (!isset($_SESSION['admin'])) {
             </div>
         </div>
     </div>
-
-
-
-
 
     <!-- HAKKIMDA BÖLÜMÜ -->
     <div class="section-collapse">
@@ -775,22 +778,70 @@ if (!isset($_SESSION['admin'])) {
 </script>
 <!--İLETİŞİM SCRİPT-->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const contactForm = document.getElementById('contactForm');
-        const contactMsg = document.getElementById('contactMessage');
-        const contactList = document.getElementById('contactList');
+    // GLOBAL SCOPE —> HER YERDEN ÇAĞRILABİLSİN
+    function deleteContact(id) {
+        if (!confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
 
-        function loadContacts() {
-            fetch('admin.php?action=get_contact')
-                .then(res => res.json())
-                .then(data => {
-                    contactList.innerHTML = '';
-                    if (data.status === 'success') {
-                        data.data.forEach(item => {
-                            const li = document.createElement('li');
-                            li.className = 'list-group-item';
+        const formData = new FormData();
+        formData.append('action', 'delete_contact');
+        formData.append('id', id);
 
-                            li.innerHTML = `
+        fetch('admin.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(resp => {
+                const contactMsg = document.getElementById('contactMessage');
+                contactMsg.innerHTML = `<div class="alert alert-${resp.status === 'success' ? 'success' : 'danger'}">${resp.message}</div>`;
+                loadContacts(); // Listeyi yeniden yükle
+            })
+            .catch(err => console.error('Hata:', err));
+    }
+
+    function updateContact(data) {
+        const phone = prompt("Telefon:", data.phone);
+        const email = prompt("E-Posta:", data.email);
+        const address = prompt("Adres:", data.address);
+        const twitter = prompt("Twitter:", data.twitter || '');
+        const linkedin = prompt("LinkedIn:", data.linkedin || '');
+        const instagram = prompt("Instagram:", data.instagram || '');
+
+        if (phone && email && address) {
+            const formData = new FormData();
+            formData.append('action', 'update_contact');
+            formData.append('id', data.id);
+            formData.append('contact_phone', phone);
+            formData.append('contact_email', email);
+            formData.append('contact_address', address);
+            formData.append('contact_twitter', twitter);
+            formData.append('contact_linkedin', linkedin);
+            formData.append('contact_instagram', instagram);
+
+            fetch('admin.php', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(result => {
+                    const contactMsg = document.getElementById('contactMessage');
+                    if (result.status === 'success') {
+                        contactMsg.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+                        loadContacts();
+                    } else {
+                        contactMsg.innerHTML = `<div class="alert alert-danger">Hata: ${result.message}</div>`;
+                    }
+                })
+                .catch(error => console.error('Hata:', error));
+        }
+    }
+
+    function loadContacts() {
+        fetch('admin.php?action=get_contact')
+            .then(res => res.json())
+            .then(data => {
+                const contactList = document.getElementById('contactList');
+                contactList.innerHTML = '';
+                if (data.status === 'success') {
+                    data.data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+
+                        li.innerHTML = `
                             <strong>📞 ${item.phone}</strong><br>
                             📧 ${item.email}<br>
                             📍 ${item.address}<br>
@@ -802,56 +853,20 @@ if (!isset($_SESSION['admin'])) {
                                 <button class="btn btn-sm btn-danger" onclick='deleteContact(${item.id})'>Sil</button>
                             </div>
                         `;
-                            contactList.appendChild(li);
-                        });
-                    } else {
-                        contactList.innerHTML = '<li class="list-group-item text-muted">Hiç kayıt yok.</li>';
-                    }
-                });
-        }
-
-        function updateContact(data) {
-            const phone = prompt("Telefon:", data.phone);
-            const email = prompt("E-Posta:", data.email);
-            const address = prompt("Adres:", data.address);
-            const twitter = prompt("Twitter:", data.twitter);
-            const linkedin = prompt("LinkedIn:", data.linkedin);
-            const instagram = prompt("Instagram:", data.instagram);
-
-            if (phone && email && address) {
-                const formData = new FormData();
-                formData.append('action', 'update_contact');
-                formData.append('id', data.id);
-                formData.append('contact_phone', phone);
-                formData.append('contact_email', email);
-                formData.append('contact_address', address);
-                formData.append('contact_twitter', twitter);
-                formData.append('contact_linkedin', linkedin);
-                formData.append('contact_instagram', instagram);
-
-                fetch('admin.php', { method: 'POST', body: formData })
-                    .then(res => res.json())
-                    .then(resp => {
-                        contactMsg.innerHTML = `<div class="alert alert-${resp.status === 'success' ? 'success' : 'danger'}">${resp.message}</div>`;
-                        loadContacts();
+                        contactList.appendChild(li);
                     });
-            }
-        }
+                } else {
+                    contactList.innerHTML = '<li class="list-group-item text-muted">Hiç kayıt yok.</li>';
+                }
+            });
+    }
 
-        function deleteContact(id) {
-            if (!confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
+    // DOMContentLoaded => Form gönderme ve ilk yükleme
+    document.addEventListener('DOMContentLoaded', function () {
+        const contactForm = document.getElementById('contactForm');
+        const contactMsg = document.getElementById('contactMessage');
 
-            const formData = new FormData();
-            formData.append('action', 'delete_contact');
-            formData.append('id', id);
-
-            fetch('admin.php', { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(resp => {
-                    contactMsg.innerHTML = `<div class="alert alert-${resp.status === 'success' ? 'success' : 'danger'}">${resp.message}</div>`;
-                    loadContacts();
-                });
-        }
+        loadContacts(); // İlk yüklemede
 
         contactForm.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -869,10 +884,9 @@ if (!isset($_SESSION['admin'])) {
                     loadContacts();
                 });
         });
-
-        loadContacts();
     });
 </script>
+
 
 </body>
 </html>
