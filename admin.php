@@ -171,7 +171,6 @@ if (!isset($_SESSION['admin'])) {
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    //Admin LOGİN
     <meta charset="UTF-8">
     <title>Admin Paneli</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -198,7 +197,8 @@ if (!isset($_SESSION['admin'])) {
 
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
-    $content = trim($_POST['whoami_text']);
+    header('Content-Type: application/json'); // <--- Bunu ekle
+    $content = trim($_POST['whoami_text'] ?? '');
 
     if (!empty($content)) {
         $stmt = $pdo->prepare("INSERT INTO whoami (whoamiContent) VALUES (?)");
@@ -212,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
+
 ?>
 
 
@@ -550,7 +551,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             method: 'POST',
             body: formData
         })
-            .then(response => response.json())
+            .then(response => response.json()) // JSON olarak al
             .then(data => {
                 const msg = document.getElementById('whoamiMessage');
                 if (data.status === 'success') {
@@ -564,6 +565,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 console.error('Hata:', error);
                 document.getElementById('whoamiMessage').innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
             });
+
     });
 </script>
 
