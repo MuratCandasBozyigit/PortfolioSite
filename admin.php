@@ -75,28 +75,20 @@ function initializeDatabase($pdo) {
             image_url TEXT
         )",
 
-        // İletişim
+        // İletişim (GÜNCELLENMİŞ)
         "CREATE TABLE IF NOT EXISTS contact (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255),
-            email VARCHAR(255),
             phone VARCHAR(20),
-            instagram VARCHAR(255),
-            facebook VARCHAR(255),
-            linkedin VARCHAR(255)
+            email VARCHAR(255),
+            address TEXT,
+            twitter VARCHAR(255),
+            linkedin VARCHAR(255),
+            instagram VARCHAR(255)
         )"
     ];
 
     foreach ($queries as $query) {
         $pdo->exec($query);
-    }
-
-    // Varsayılan admin hesabını oluştur
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = 'admin'");
-    $stmt->execute();
-    if ($stmt->rowCount() === 0) {
-        $hash = password_hash("123456", PASSWORD_DEFAULT);
-        $pdo->prepare("INSERT INTO users (username, password) VALUES ('admin', ?)")->execute([$hash]);
     }
 }
 
