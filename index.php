@@ -1,7 +1,7 @@
 <?php
 // index.php
 
-// 1) VERİTABANI BAĞLANTISI
+// 1) DATABASE CONNECTION
 $host     = '217.195.207.215';
 $port     = '3306';
 $dbname   = 'dunyani1_Portfolio';
@@ -14,19 +14,20 @@ $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ];
+
 try {
     $pdo = new PDO($dsn, $username, $password, $options);
 } catch (PDOException $e) {
-    die("Veritabanı bağlantı hatası: " . $e->getMessage());
+    die("Database connection error: " . $e->getMessage());
 }
 
-// 2) UTİLİTY: TABLODAN EN SON SATIRI GETİR
+// 2) UTILITY: GET LAST ROW FROM TABLE
 function getLastRow(PDO $pdo, string $table) {
     $stmt = $pdo->query("SELECT * FROM `{$table}` ORDER BY id DESC LIMIT 1");
     return $stmt->fetch();
 }
 
-// 3) HER BÖLÜM İÇİN VERİLERİ ÇEK
+// 3) FETCH DATA FOR EACH SECTION
 $whoami   = getLastRow($pdo, 'whoami');
 $contact  = getLastRow($pdo, 'contact');
 $bio      = getLastRow($pdo, 'biography');
@@ -49,42 +50,111 @@ $gal      = getLastRow($pdo, 'gallery');
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #e2e8f0;
+            color: #E5E7EB; /* Light text */
             scroll-behavior: smooth;
+            background: linear-gradient(240deg, #10B981, #FF61A6, #FFEA5A);
+            animation: gradient 30s ease infinite; /* Slow down animation duration */
+            background-size: 600% 600%; /* Allow for smooth gradient transitions */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure body is at least full view height */
+            margin: 0; /* Remove margin */
         }
-        .navbar { background-color: #1e293b; }
-        .navbar-brand, .nav-link { color: #e2e8f0 !important; }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .navbar {
+            background-color: rgba(31, 41, 55, 0.9); /* Semi-transparent background */
+            backdrop-filter: blur(10px); /* Blur effect on the background */
+        }
+
+        .navbar-brand {
+            color: #10B981 !important;
+            font-weight: bold;
+        }
+
+        .nav-link {
+            color: #FBBF24 !important;
+            transition: color 0.5s;
+        }
+
+        .nav-link:hover {
+            color: #FFFFFF !important;
+        }
+
         .hero {
             height: 80vh;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
+            clip-path: polygon(0 0, 100% 0%, 100% 100%, 0 90%);
+            position: relative;
+            z-index: 1;
         }
-        h1, h2, h5, h6 { font-family: 'Fira Code', monospace; }
-        .section { padding: 60px 0; }
+
+        h1, h2 { font-family: 'Fira Code', monospace; }
+
+        .section {
+            padding: 60px 0;
+            opacity: 0; /* Start invisible */
+            transition: opacity 0.5s ease, transform 0.5s ease; /* Smooth transition */
+            transform: translateY(30px); /* Slide in from below */
+            display: none; /* Start hidden */
+            position: relative; /* Maintain flow in layout */
+        }
+
+        .section.visible {
+            opacity: 1; /* Make visible */
+            transform: translateY(0); /* Target position */
+            display: block; /* Display as block */
+        }
+
         .card {
-            background-color: #1e293b;
-            border: none; border-radius: 12px;
-            color: #cbd5e1;
-            transition: transform 0.3s ease;
+            background-color: #2A2E35; /* Darker color for better visibility */
+            border: none;
+            border-radius: 12px;
+            color: #D1FAE5; /* Lighter text for cards */
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%; /* Ensuring equal height */
         }
-        .card:hover { transform: scale(1.02); }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
         footer {
-            background-color: #1e293b;
-            color: #94a3b8;
-            padding: 20px; text-align: center;
+            background-color: #1F2937;
+            color: #94A3B8;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto; /* Footer'ı en aşağıda tutar */
+            z-index: 10; /* On top of sections */
+            width: 100%; /* Full width */
         }
-        a { color: #38bdf8; text-decoration: none; }
-        .btn-primary {
-            background-color: #38bdf8; border: none;
+
+        .gallery-img {
+            max-height: 250px;
+            object-fit: cover; /* Cover the area while keeping aspect ratio */
+            width: 100%; /* Ensures the image fills the card */
+            border-radius: 12px;
         }
-        .btn-primary:hover { background-color: #0ea5e9; }
-        .gallery-img { max-height: 250px; object-fit: cover; }
+
+        .section-title {
+            background: linear-gradient(90deg, #FF61A6, #FFEA5A); /* Colorful title */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -92,9 +162,9 @@ $gal      = getLastRow($pdo, 'gallery');
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="#hero">Murat.dev</a>
-        <button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#nav">
-            <span class="navbar-toggler-icon text-white"></span>
+        <a class="navbar-brand" href="#hero">Murat.dev</a>
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon text-dark"></span>
         </button>
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav ms-auto gap-3">
@@ -113,7 +183,7 @@ $gal      = getLastRow($pdo, 'gallery');
 <section id="hero" class="hero">
     <div class="container text-white">
         <h1 class="display-4 fw-bold">Merhaba, ben Murat 👨‍💻</h1>
-        <p class="lead">Yazılım & Web Geliştiricisi</p>
+        <p class="lead">Web Developer &amp; Software Developer</p>
         <a href="#whoami" class="btn btn-primary mt-3">Devam Et</a>
     </div>
 </section>
@@ -122,15 +192,15 @@ $gal      = getLastRow($pdo, 'gallery');
 
     <!-- Whoami -->
     <section id="whoami" class="section">
-        <h2 class="text-center mb-4">👋 Ben Kimim</h2>
+        <h2 class="text-center section-title mb-4">👋 Ben Kimim</h2>
         <div class="card p-4">
             <p><?= nl2br(htmlspecialchars($whoami['whoamiContent'] ?? 'Henüz metin eklenmedi.')) ?></p>
         </div>
     </section>
 
     <!-- Hakkımda -->
-    <section id="about" class="section" style="background-color: #0f1a2a;">
-        <h2 class="text-center mb-5">👨‍💼 Hakkımda</h2>
+    <section id="about" class="section">
+        <h2 class="text-center section-title mb-5">👨‍💼 Hakkımda</h2>
         <div class="row g-4 text-center">
             <div class="col-md-4">
                 <div class="card p-3">
@@ -157,7 +227,7 @@ $gal      = getLastRow($pdo, 'gallery');
 
     <!-- Blog -->
     <section id="blog" class="section">
-        <h2 class="text-center mb-5">✍️ Blog</h2>
+        <h2 class="text-center section-title mb-5">✍️ Blog</h2>
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="card p-3">
@@ -191,14 +261,14 @@ $gal      = getLastRow($pdo, 'gallery');
     </section>
 
     <!-- Galeri -->
-    <section id="gallery" class="section" style="background-color: #0f1a2a;">
-        <h2 class="text-center mb-5">🖼️ Galeri</h2>
+    <section id="gallery" class="section">
+        <h2 class="text-center section-title mb-5">🖼️ Galeri</h2>
         <div class="row g-4">
             <div class="col-md-12 text-center">
                 <div class="card p-3">
                     <h5><?= htmlspecialchars($gal['title'] ?? '') ?> (<?= htmlspecialchars($gal['type'] ?? '') ?>)</h5>
                     <?php if (!empty($gal['image_url'])): ?>
-                        <img src="<?= htmlspecialchars($gal['image_url']) ?>" class="img-fluid gallery-img mt-3" alt="Galeri">
+                        <img src="<?= htmlspecialchars($gal['image_url']) ?>" class="gallery-img mt-3" alt="Galeri">
                     <?php endif; ?>
                 </div>
             </div>
@@ -207,7 +277,7 @@ $gal      = getLastRow($pdo, 'gallery');
 
     <!-- İletişim -->
     <section id="contact" class="section">
-        <h2 class="text-center mb-5">📬 İletişim</h2>
+        <h2 class="text-center section-title mb-5">📬 İletişim</h2>
         <div class="card p-4">
             <p><strong>Telefon:</strong> <?= htmlspecialchars($contact['phone'] ?? '') ?></p>
             <p><strong>Email:</strong> <?= htmlspecialchars($contact['email'] ?? '') ?></p>
@@ -228,5 +298,36 @@ $gal      = getLastRow($pdo, 'gallery');
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Adding smooth sliding transition with the slide effect
+    const sections = document.querySelectorAll('.section');
+    const links = document.querySelectorAll('.nav-link');
+
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Remove visibility from all sections
+            sections.forEach(section => {
+                section.classList.remove('visible');
+            });
+
+            // Get the target section
+            const target = document.querySelector(this.getAttribute('href'));
+
+            // Scroll to top of the target section
+            window.scrollTo({
+                top: target.offsetTop,
+                behavior: 'smooth'
+            });
+
+            // Set a timeout to allow the scroll to complete before adding visibility
+            setTimeout(() => {
+                target.classList.add('visible'); // Make the target section visible
+            }, 500); // Match this duration with the CSS transition duration
+        });
+    });
+</script>
 </body>
 </html>
