@@ -1,78 +1,105 @@
 <?php
-// index.php - Tüm sayfalar bir arada, scroll navigasyon ile
+// index.php
+
+// 1) VERİTABANI BAĞLANTISI
+$host     = '217.195.207.215';
+$port     = '3306';
+$dbname   = 'dunyani1_Portfolio';
+$username = 'murat';
+$password = '81644936.Ma';
+$charset  = 'utf8mb4';
+
+$dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+];
+try {
+    $pdo = new PDO($dsn, $username, $password, $options);
+} catch (PDOException $e) {
+    die("Veritabanı bağlantı hatası: " . $e->getMessage());
+}
+
+// 2) UTİLİTY: TABLODAN EN SON SATIRI GETİR
+function getLastRow(PDO $pdo, string $table) {
+    $stmt = $pdo->query("SELECT * FROM `{$table}` ORDER BY id DESC LIMIT 1");
+    return $stmt->fetch();
+}
+
+// 3) HER BÖLÜM İÇİN VERİLERİ ÇEK
+$whoami   = getLastRow($pdo, 'whoami');
+$contact  = getLastRow($pdo, 'contact');
+$bio      = getLastRow($pdo, 'biography');
+$intrests = getLastRow($pdo, 'interests');
+$edu      = getLastRow($pdo, 'education_experience');
+$ach      = getLastRow($pdo, 'achievements');
+$ppost    = getLastRow($pdo, 'personal_posts');
+$tnotes   = getLastRow($pdo, 'travel_notes');
+$bfrec    = getLastRow($pdo, 'book_film_recommendations');
+$tech     = getLastRow($pdo, 'tech_interests');
+$gal      = getLastRow($pdo, 'gallery');
 ?>
 
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Kişisel Web Sitem</title>
+    <title>Murat.dev | Yazılım & Web Geliştirici</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
             scroll-behavior: smooth;
         }
-
-        .navbar {
-            background-color: #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
+        .navbar { background-color: #1e293b; }
+        .navbar-brand, .nav-link { color: #e2e8f0 !important; }
         .hero {
-            height: 100vh;
-            background: linear-gradient(to right, #e0ecff, #fdfdfd);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 80vh;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            display: flex; align-items: center; justify-content: center;
             text-align: center;
         }
-
-        section {
-            padding: 80px 0;
-        }
-
-        h2 {
-            font-weight: 800;
-        }
-
+        h1, h2, h5, h6 { font-family: 'Fira Code', monospace; }
+        .section { padding: 60px 0; }
         .card {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background-color: #1e293b;
+            border: none; border-radius: 12px;
+            color: #cbd5e1;
+            transition: transform 0.3s ease;
         }
-
+        .card:hover { transform: scale(1.02); }
         footer {
-            background: #f9f9f9;
-            padding: 30px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #666;
+            background-color: #1e293b;
+            color: #94a3b8;
+            padding: 20px; text-align: center;
         }
-
-        .btn-scroll {
-            margin-top: 30px;
+        a { color: #38bdf8; text-decoration: none; }
+        .btn-primary {
+            background-color: #38bdf8; border: none;
         }
+        .btn-primary:hover { background-color: #0ea5e9; }
+        .gallery-img { max-height: 250px; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="#hero">Murat'ın Portfolyosu</a>
-        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
+        <a class="navbar-brand fw-bold" href="#hero">Murat.dev</a>
+        <button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon text-white"></span>
         </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
+        <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav ms-auto gap-3">
                 <li class="nav-item"><a class="nav-link" href="#hero">Ana Sayfa</a></li>
+                <li class="nav-item"><a class="nav-link" href="#whoami">Ben Kimim</a></li>
                 <li class="nav-item"><a class="nav-link" href="#about">Hakkımda</a></li>
                 <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
                 <li class="nav-item"><a class="nav-link" href="#gallery">Galeri</a></li>
@@ -84,108 +111,122 @@
 
 <!-- Hero -->
 <section id="hero" class="hero">
-    <div class="container">
-        <h1>Merhaba, ben Murat 👋</h1>
-        <p>Kişisel portfolyoma hoş geldiniz!</p>
-        <a href="#about" class="btn btn-primary btn-lg btn-scroll">Hakkımda</a>
+    <div class="container text-white">
+        <h1 class="display-4 fw-bold">Merhaba, ben Murat 👨‍💻</h1>
+        <p class="lead">Yazılım & Web Geliştiricisi</p>
+        <a href="#whoami" class="btn btn-primary mt-3">Devam Et</a>
     </div>
 </section>
 
-<!-- Hakkımda -->
-<section id="about">
-    <div class="container">
-        <h2 class="text-center mb-5">Hakkımda</h2>
-        <div class="row g-4">
-            <div class="col-md-3">
+<div class="container">
+
+    <!-- Whoami -->
+    <section id="whoami" class="section">
+        <h2 class="text-center mb-4">👋 Ben Kimim</h2>
+        <div class="card p-4">
+            <p><?= nl2br(htmlspecialchars($whoami['whoamiContent'] ?? 'Henüz metin eklenmedi.')) ?></p>
+        </div>
+    </section>
+
+    <!-- Hakkımda -->
+    <section id="about" class="section" style="background-color: #0f1a2a;">
+        <h2 class="text-center mb-5">👨‍💼 Hakkımda</h2>
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
                 <div class="card p-3">
                     <h5>Biyografi</h5>
-                    <p>Kısa bir biyografi metni yer alacak.</p>
+                    <p><?= nl2br(htmlspecialchars($bio['content'] ?? '')) ?></p>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card p-3">
                     <h5>İlgi Alanlarım</h5>
-                    <p>Yazılım, müzik, sanat, gezi...</p>
+                    <p><?= nl2br(htmlspecialchars($intrests['content'] ?? '')) ?></p>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card p-3">
-                    <h5>Eğitim & Deneyim</h5>
-                    <p>Okullar ve iş geçmişi bilgileri burada olacak.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3">
-                    <h5>Sertifikalar</h5>
-                    <p>Aldığınız sertifikalar listelenebilir.</p>
+                    <h5>Eğitim &amp; Deneyim</h5>
+                    <p><strong><?= htmlspecialchars($edu['title'] ?? '') ?></strong> @ <?= htmlspecialchars($edu['institution'] ?? '') ?></p>
+                    <p><?= nl2br(htmlspecialchars($edu['description'] ?? '')) ?></p>
+                    <small class="text-muted"><?= htmlspecialchars($edu['start_date'] ?? '') ?> → <?= htmlspecialchars($edu['end_date'] ?? '') ?></small>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Blog -->
-<section id="blog" style="background-color: #f6f9fc;">
-    <div class="container">
-        <h2 class="text-center mb-5">Blog</h2>
+    <!-- Blog -->
+    <section id="blog" class="section">
+        <h2 class="text-center mb-5">✍️ Blog</h2>
         <div class="row g-4">
-            <div class="col-md-3"><div class="card p-3"><h6>Kişisel Yazılar</h6><p>Blog post içerikleri buraya gelecek.</p></div></div>
-            <div class="col-md-3"><div class="card p-3"><h6>Seyahat Notları</h6><p>Gezdiğin yerlerden notlar paylaş.</p></div></div>
-            <div class="col-md-3"><div class="card p-3"><h6>Kitap & Film</h6><p>Önerdiğin eserleri paylaş.</p></div></div>
-            <div class="col-md-3"><div class="card p-3"><h6>Teknoloji</h6><p>Geliştirdiğin şeyler veya incelemeler.</p></div></div>
-        </div>
-    </div>
-</section>
-
-<!-- Galeri -->
-<section id="gallery">
-    <div class="container">
-        <h2 class="text-center mb-5">Galeri</h2>
-        <div class="row g-4">
-            <div class="col-md-4"><div class="card p-3"><h6>Fotoğraflarım</h6><p>Resim galerisi eklenecek.</p></div></div>
-            <div class="col-md-4"><div class="card p-3"><h6>Hobilerim</h6><p>Hobi görselleri gösterilecek.</p></div></div>
-            <div class="col-md-4"><div class="card p-3"><h6>Video & Multimedya</h6><p>Youtube videolar veya medya.</p></div></div>
-        </div>
-    </div>
-</section>
-
-<!-- İletişim -->
-<section id="contact" style="background-color: #f6f9fc;">
-    <div class="container">
-        <h2 class="text-center mb-4">İletişim</h2>
-        <div class="row justify-content-center">
             <div class="col-md-6">
-                <form>
-                    <div class="mb-3">
-                        <label>Ad Soyad</label>
-                        <input type="text" class="form-control" placeholder="Adınız">
-                    </div>
-                    <div class="mb-3">
-                        <label>E-Posta</label>
-                        <input type="email" class="form-control" placeholder="E-posta adresiniz">
-                    </div>
-                    <div class="mb-3">
-                        <label>Mesaj</label>
-                        <textarea class="form-control" rows="4" placeholder="Mesajınız..."></textarea>
-                    </div>
-                    <button class="btn btn-primary">Gönder</button>
-                </form>
-                <div class="mt-4 text-center">
-                    <a href="#">Instagram</a> •
-                    <a href="#">GitHub</a> •
-                    <a href="#">LinkedIn</a>
+                <div class="card p-3">
+                    <h6>Kişisel Yazılar</h6>
+                    <p><?= nl2br(htmlspecialchars($ppost['content'] ?? '')) ?></p>
+                    <small class="text-muted"><?= htmlspecialchars($ppost['created_at'] ?? '') ?></small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h6>Seyahat Notları</h6>
+                    <p><?= nl2br(htmlspecialchars($tnotes['content'] ?? '')) ?></p>
+                    <small class="text-muted"><?= htmlspecialchars($tnotes['created_at'] ?? '') ?></small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h6>Kitap &amp; Film &amp; Dizi</h6>
+                    <p><?= nl2br(htmlspecialchars($bfrec['content'] ?? '')) ?></p>
+                    <small class="text-muted"><?= htmlspecialchars($bfrec['type'] ?? '') ?> • <?= htmlspecialchars($bfrec['created_at'] ?? '') ?></small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h6>Teknoloji İlgi Alanlarım</h6>
+                    <p><?= nl2br(htmlspecialchars($tech['content'] ?? '')) ?></p>
+                    <small class="text-muted"><?= htmlspecialchars($tech['created_at'] ?? '') ?></small>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Footer -->
+    <!-- Galeri -->
+    <section id="gallery" class="section" style="background-color: #0f1a2a;">
+        <h2 class="text-center mb-5">🖼️ Galeri</h2>
+        <div class="row g-4">
+            <div class="col-md-12 text-center">
+                <div class="card p-3">
+                    <h5><?= htmlspecialchars($gal['title'] ?? '') ?> (<?= htmlspecialchars($gal['type'] ?? '') ?>)</h5>
+                    <?php if (!empty($gal['image_url'])): ?>
+                        <img src="<?= htmlspecialchars($gal['image_url']) ?>" class="img-fluid gallery-img mt-3" alt="Galeri">
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- İletişim -->
+    <section id="contact" class="section">
+        <h2 class="text-center mb-5">📬 İletişim</h2>
+        <div class="card p-4">
+            <p><strong>Telefon:</strong> <?= htmlspecialchars($contact['phone'] ?? '') ?></p>
+            <p><strong>Email:</strong> <?= htmlspecialchars($contact['email'] ?? '') ?></p>
+            <p><strong>Adres:</strong> <?= nl2br(htmlspecialchars($contact['address'] ?? '')) ?></p>
+            <p>
+                <?php if ($contact['twitter']):  ?><a href="<?= htmlspecialchars($contact['twitter']) ?>">Twitter</a> <?php endif; ?>
+                <?php if ($contact['linkedin']): ?><a href="<?= htmlspecialchars($contact['linkedin']) ?>">LinkedIn</a> <?php endif; ?>
+                <?php if ($contact['instagram']): ?><a href="<?= htmlspecialchars($contact['instagram']) ?>">Instagram</a> <?php endif; ?>
+            </p>
+        </div>
+    </section>
+
+</div>
+
 <footer>
-    &copy; <?= date("Y") ?> Murat | Tüm hakları saklıdır.
+    <p>&copy; <?= date('Y') ?> Murat.dev</p>
 </footer>
 
-<!-- Bootstrap -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
