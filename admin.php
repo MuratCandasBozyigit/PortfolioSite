@@ -1430,6 +1430,7 @@ if (!isset($_SESSION['admin'])) {
         loadWhoamiList();
     });
 </script>
+
 <!--İLETİŞİM SCRİPT-->
 <script>
     async function deleteContact(id) {
@@ -1570,15 +1571,65 @@ if (!isset($_SESSION['admin'])) {
         });
     });
 </script>
+
 <!--HAKKIMDA SCRİPT-->
 <!--Biyografi-->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const bioForm = document.getElementById('biographyForm');
         const bioTextarea = document.getElementById('biography_textarea');
-        const bioMessage = document.getElementById('biographyMessage');
         const bioList = document.getElementById('biographyList');
 
+        // SweetAlert2 yardımcı fonksiyonları
+        function showAlert(icon, title, text) {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                text: text,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+
+        function showConfirm(title, text, confirmText, callback) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: confirmText
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    callback();
+                }
+            });
+        }
+
+        function showPrompt(title, text, inputValue, callback) {
+            Swal.fire({
+                title: title,
+                text: text,
+                input: 'textarea',
+                inputValue: inputValue,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Bu alan boş bırakılamaz!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    callback(result.value);
+                }
+            });
+        }
+
+        // Biyografileri yükle
         function loadBiographies() {
             fetch('admin.php?action=get_biography')
                 .then(res => res.json())
@@ -1597,21 +1648,26 @@ if (!isset($_SESSION['admin'])) {
 
                             const updateBtn = document.createElement('button');
                             updateBtn.textContent = 'Güncelle';
-                            updateBtn.className = 'btn btn-warning';
+                            updateBtn.className = 'btn btn-warning me-1';
                             updateBtn.onclick = function () {
-                                const newContent = prompt('Yeni içerik:', item.content);
-                                if (newContent !== null && newContent.trim() !== '') {
-                                    updateBiography(item.id, newContent);
-                                }
+                                showPrompt(
+                                    'Biyografi Güncelle',
+                                    'Yeni içeriği düzenleyin:',
+                                    item.content,
+                                    (newContent) => updateBiography(item.id, newContent)
+                                );
                             };
 
                             const deleteBtn = document.createElement('button');
                             deleteBtn.textContent = 'Sil';
                             deleteBtn.className = 'btn btn-danger';
                             deleteBtn.onclick = function () {
-                                if (confirm('Bu kaydı silmek istiyor musunuz?')) {
-                                    deleteBiography(item.id);
-                                }
+                                showConfirm(
+                                    'Emin misiniz?',
+                                    'Bu biyografiyi silmek istediğinizden emin misiniz?',
+                                    'Evet, sil!',
+                                    () => deleteBiography(item.id)
+                                );
                             };
 
                             btnGroup.appendChild(updateBtn);
@@ -1631,7 +1687,7 @@ if (!isset($_SESSION['admin'])) {
                 })
                 .catch(err => {
                     console.error('Biyografi verisi alınamadı:', err);
-                    bioList.innerHTML = '<li class="list-group-item text-danger">Yüklenemedi.</li>';
+                    showAlert('error', 'Hata!', 'Biyografiler yüklenirken bir hata oluştu.');
                 });
         }
 
@@ -1647,8 +1703,16 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    bioMessage.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
-                    loadBiographies();
+                    if (data.status === 'success') {
+                        showAlert('success', 'Başarılı!', data.message);
+                        loadBiographies();
+                    } else {
+                        showAlert('error', 'Hata!', data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Güncelleme hatası:', err);
+                    showAlert('error', 'Hata!', 'Güncelleme sırasında bir hata oluştu.');
                 });
         }
 
@@ -1663,8 +1727,16 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    bioMessage.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
-                    loadBiographies();
+                    if (data.status === 'success') {
+                        showAlert('success', 'Başarılı!', data.message);
+                        loadBiographies();
+                    } else {
+                        showAlert('error', 'Hata!', data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Silme hatası:', err);
+                    showAlert('error', 'Hata!', 'Silme işlemi sırasında bir hata oluştu.');
                 });
         }
 
@@ -1674,6 +1746,13 @@ if (!isset($_SESSION['admin'])) {
         // Form gönderimi
         bioForm.addEventListener('submit', function (e) {
             e.preventDefault();
+            const content = bioTextarea.value.trim();
+
+            if (!content) {
+                showAlert('warning', 'Uyarı!', 'Biyografi içeriği boş bırakılamaz.');
+                return;
+            }
+
             const formData = new FormData(bioForm);
             formData.append('action', 'save_biography');
 
@@ -1683,15 +1762,17 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    bioMessage.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
                     if (data.status === 'success') {
+                        showAlert('success', 'Başarılı!', data.message);
                         bioForm.reset();
                         loadBiographies();
+                    } else {
+                        showAlert('error', 'Hata!', data.message);
                     }
                 })
                 .catch(err => {
                     console.error('Kayıt hatası:', err);
-                    bioMessage.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                    showAlert('error', 'Hata!', 'Kayıt sırasında bir hata oluştu.');
                 });
         });
     });
@@ -1701,8 +1782,18 @@ if (!isset($_SESSION['admin'])) {
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('interestsForm');
         const textarea = document.getElementById('interests_textarea');
-        const msg = document.getElementById('interestsMessage');
         const list = document.getElementById('interestsList');
+
+        function showMessage(type, text) {
+            Swal.fire({
+                icon: type,
+                text: text,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
 
         function loadInterestsList() {
             fetch('admin.php?action=get_interests')
@@ -1724,19 +1815,48 @@ if (!isset($_SESSION['admin'])) {
                             updateBtn.className = 'btn btn-warning';
                             updateBtn.textContent = 'Güncelle';
                             updateBtn.onclick = () => {
-                                const newContent = prompt('Yeni içerik:', item.content);
-                                if (newContent && newContent.trim() !== '') {
-                                    updateInterest(item.id, newContent);
-                                }
+                                Swal.fire({
+                                    title: 'İçeriği Güncelle',
+                                    input: 'textarea',
+                                    inputValue: item.content,
+                                    inputAttributes: {
+                                        required: true
+                                    },
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Güncelle',
+                                    cancelButtonText: 'İptal',
+                                    preConfirm: (newContent) => {
+                                        if (!newContent || !newContent.trim()) {
+                                            Swal.showValidationMessage('Bu alan boş bırakılamaz');
+                                            return false;
+                                        }
+                                        return newContent;
+                                    }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        updateInterest(item.id, result.value);
+                                    }
+                                });
                             };
 
                             const deleteBtn = document.createElement('button');
                             deleteBtn.className = 'btn btn-danger';
                             deleteBtn.textContent = 'Sil';
                             deleteBtn.onclick = () => {
-                                if (confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
-                                    deleteInterest(item.id);
-                                }
+                                Swal.fire({
+                                    title: 'Emin misiniz?',
+                                    text: "Bu kaydı silmek istediğinizden emin misiniz?",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#3085d6',
+                                    cancelButtonColor: '#d33',
+                                    confirmButtonText: 'Evet, sil!',
+                                    cancelButtonText: 'İptal'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        deleteInterest(item.id);
+                                    }
+                                });
                             };
 
                             buttonGroup.appendChild(updateBtn);
@@ -1755,7 +1875,7 @@ if (!isset($_SESSION['admin'])) {
                     }
                 })
                 .catch(err => {
-                    list.innerHTML = '<li class="list-group-item text-danger">Yükleme hatası!</li>';
+                    showMessage('error', 'Yükleme hatası!');
                     console.error('Listeleme hatası:', err);
                 });
         }
@@ -1772,7 +1892,7 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    showMessage(data.status === 'success' ? 'success' : 'error', data.message);
                     loadInterestsList();
                 });
         }
@@ -1788,7 +1908,7 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    showMessage(data.status === 'success' ? 'success' : 'error', data.message);
                     loadInterestsList();
                 });
         }
@@ -1798,20 +1918,25 @@ if (!isset($_SESSION['admin'])) {
             const formData = new FormData(form);
             formData.append('action', 'save_interests');
 
+            if (!textarea.value.trim()) {
+                showMessage('error', 'İçerik alanı boş bırakılamaz!');
+                return;
+            }
+
             fetch('admin.php', {
                 method: 'POST',
                 body: formData
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    showMessage(data.status === 'success' ? 'success' : 'error', data.message);
                     if (data.status === 'success') {
                         form.reset();
                         loadInterestsList();
                     }
                 })
                 .catch(err => {
-                    msg.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                    showMessage('error', 'Bir hata oluştu!');
                     console.error('Kayıt hatası:', err);
                 });
         });
@@ -1824,11 +1949,31 @@ if (!isset($_SESSION['admin'])) {
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('educationForm');
         const list = document.getElementById('educationList');
-        const messageBox = document.getElementById('eduMessage');
 
-        function showMessage(type, text) {
-            messageBox.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
-            setTimeout(() => messageBox.innerHTML = '', 4000);
+        function showAlert(icon, title, text) {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                text: text,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+
+        function showConfirm(title, text, confirmText, callback) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: confirmText
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    callback();
+                }
+            });
         }
 
         form.addEventListener('submit', function (e) {
@@ -1840,11 +1985,16 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
                     if (data.status === 'success') {
+                        showAlert('success', 'Başarılı!', data.message);
                         form.reset();
                         fetchEducation();
+                    } else {
+                        showAlert('error', 'Hata!', data.message);
                     }
+                })
+                .catch(error => {
+                    showAlert('error', 'Hata!', 'Bir şeyler yanlış gitti.');
                 });
         });
 
@@ -1856,25 +2006,28 @@ if (!isset($_SESSION['admin'])) {
                     if (data.status === 'success') {
                         data.data.forEach(item => {
                             list.innerHTML += `
-                        <li class="list-group-item d-flex justify-content-between align-items-start"
-                            data-id="${item.id}"
-                            data-title="${escapeHtml(item.title)}"
-                            data-institution="${escapeHtml(item.institution)}"
-                            data-start-date="${item.start_date || ''}"
-                            data-end-date="${item.end_date || ''}"
-                            data-description="${escapeHtml(item.description || '')}">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold">${escapeHtml(item.title)} - ${escapeHtml(item.institution)}</div>
-                                ${item.start_date || ''} - ${item.end_date || ''}<br>
-                                ${escapeHtml(item.description || '')}
-                            </div>
-                            <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
-                            <button class="btn btn-sm btn-danger delete-btn">Sil</button>
-                        </li>`;
+                                <li class="list-group-item d-flex justify-content-between align-items-start"
+                                    data-id="${item.id}"
+                                    data-title="${escapeHtml(item.title)}"
+                                    data-institution="${escapeHtml(item.institution)}"
+                                    data-start-date="${item.start_date || ''}"
+                                    data-end-date="${item.end_date || ''}"
+                                    data-description="${escapeHtml(item.description || '')}">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">${escapeHtml(item.title)} - ${escapeHtml(item.institution)}</div>
+                                        ${item.start_date || ''} - ${item.end_date || ''}<br>
+                                        ${escapeHtml(item.description || '')}
+                                    </div>
+                                    <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                                    <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                                </li>`;
                         });
                     } else {
                         list.innerHTML = '<li class="list-group-item">Kayıt bulunamadı.</li>';
                     }
+                })
+                .catch(error => {
+                    showAlert('error', 'Hata!', 'Eğitim bilgileri yüklenirken bir hata oluştu.');
                 });
         }
 
@@ -1884,31 +2037,46 @@ if (!isset($_SESSION['admin'])) {
             const id = li.dataset.id;
 
             if (e.target.classList.contains('delete-btn')) {
-                const formData = new FormData();
-                formData.append('action', 'delete_education');
-                formData.append('id', id);
-                fetch('admin.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
-                        fetchEducation();
-                    });
+                showConfirm('Emin misiniz?', 'Bu kaydı silmek istediğinizden emin misiniz?', 'Evet, sil!', () => {
+                    const formData = new FormData();
+                    formData.append('action', 'delete_education');
+                    formData.append('id', id);
+                    fetch('admin.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                showAlert('success', 'Başarılı!', data.message);
+                                fetchEducation();
+                            } else {
+                                showAlert('error', 'Hata!', data.message);
+                            }
+                        })
+                        .catch(error => {
+                            showAlert('error', 'Hata!', 'Silme işlemi sırasında bir hata oluştu.');
+                        });
+                });
             }
 
             if (e.target.classList.contains('update-btn')) {
                 const contentDiv = li.querySelector('.ms-2');
                 contentDiv.innerHTML = `
-                <input class="form-control mb-1" name="title" value="${li.dataset.title}">
-                <input class="form-control mb-1" name="institution" value="${li.dataset.institution}">
-                <input class="form-control mb-1" type="date" name="start_date" value="${li.dataset.startDate}">
-                <input class="form-control mb-1" type="date" name="end_date" value="${li.dataset.endDate}">
-                <textarea class="form-control mb-1" name="description">${li.dataset.description}</textarea>
-                <button class="btn btn-sm btn-success save-btn">Kaydet</button>
-            `;
+                    <input class="form-control mb-1" name="title" value="${li.dataset.title}">
+                    <input class="form-control mb-1" name="institution" value="${li.dataset.institution}">
+                    <input class="form-control mb-1" type="date" name="start_date" value="${li.dataset.startDate}">
+                    <input class="form-control mb-1" type="date" name="end_date" value="${li.dataset.endDate}">
+                    <textarea class="form-control mb-1" name="description">${li.dataset.description}</textarea>
+                    <button class="btn btn-sm btn-success save-btn">Kaydet</button>
+                    <button class="btn btn-sm btn-secondary cancel-btn">İptal</button>
+                `;
                 li.querySelector('.update-btn').remove();
+                li.querySelector('.delete-btn').remove();
+            }
+
+            if (e.target.classList.contains('cancel-btn')) {
+                fetchEducation();
             }
 
             if (e.target.classList.contains('save-btn')) {
@@ -1917,6 +2085,11 @@ if (!isset($_SESSION['admin'])) {
                 const start_date = li.querySelector('input[name="start_date"]').value;
                 const end_date = li.querySelector('input[name="end_date"]').value;
                 const description = li.querySelector('textarea[name="description"]').value;
+
+                if (!title || !institution) {
+                    showAlert('warning', 'Uyarı!', 'Başlık ve kurum alanları zorunludur.');
+                    return;
+                }
 
                 const formData = new FormData();
                 formData.append('action', 'update_education');
@@ -1933,8 +2106,15 @@ if (!isset($_SESSION['admin'])) {
                 })
                     .then(res => res.json())
                     .then(data => {
-                        showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
-                        fetchEducation();
+                        if (data.status === 'success') {
+                            showAlert('success', 'Başarılı!', data.message);
+                            fetchEducation();
+                        } else {
+                            showAlert('error', 'Hata!', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('error', 'Hata!', 'Güncelleme sırasında bir hata oluştu.');
                     });
             }
         });
@@ -1959,11 +2139,14 @@ if (!isset($_SESSION['admin'])) {
         const listContainer = document.getElementById('achievementList');
 
         function showMessage(type, text) {
-            const msg = document.createElement('div');
-            msg.className = `alert alert-${type}`;
-            msg.innerText = text;
-            form.insertAdjacentElement('beforebegin', msg);
-            setTimeout(() => msg.remove(), 4000);
+            Swal.fire({
+                icon: type,
+                text: text,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
 
         function fetchAchievements() {
@@ -2006,7 +2189,7 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
+                    showMessage(data.status === 'success' ? 'success' : 'error', data.message);
                     if (data.status === 'success') {
                         form.reset();
                         fetchAchievements();
@@ -2020,18 +2203,31 @@ if (!isset($_SESSION['admin'])) {
             const id = li.dataset.id;
 
             if (e.target.classList.contains('delete-btn')) {
-                const fd = new FormData();
-                fd.append('action', 'delete_achievement');
-                fd.append('id', id);
-                fetch('admin.php', {
-                    method: 'POST',
-                    body: fd
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
-                        fetchAchievements();
-                    });
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: "Bu kaydı silmek istediğinizden emin misiniz?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Evet, sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const fd = new FormData();
+                        fd.append('action', 'delete_achievement');
+                        fd.append('id', id);
+                        fetch('admin.php', {
+                            method: 'POST',
+                            body: fd
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                showMessage(data.status === 'success' ? 'success' : 'error', data.message);
+                                fetchAchievements();
+                            });
+                    }
+                });
             }
 
             if (e.target.classList.contains('update-btn')) {
@@ -2042,8 +2238,14 @@ if (!isset($_SESSION['admin'])) {
                 <input class="form-control mb-1" type="date" name="date" value="${li.dataset.date}">
                 <textarea class="form-control mb-1" name="description">${li.dataset.description}</textarea>
                 <button class="btn btn-sm btn-success save-btn">Kaydet</button>
+                <button class="btn btn-sm btn-secondary cancel-btn">İptal</button>
             `;
                 li.querySelector('.update-btn').remove();
+                li.querySelector('.delete-btn').remove();
+            }
+
+            if (e.target.classList.contains('cancel-btn')) {
+                fetchAchievements();
             }
 
             if (e.target.classList.contains('save-btn')) {
@@ -2051,6 +2253,11 @@ if (!isset($_SESSION['admin'])) {
                 const issuer = li.querySelector('input[name="issuer"]').value;
                 const date = li.querySelector('input[name="date"]').value;
                 const description = li.querySelector('textarea[name="description"]').value;
+
+                if (!title.trim()) {
+                    showMessage('error', 'Başlık alanı boş bırakılamaz!');
+                    return;
+                }
 
                 const fd = new FormData();
                 fd.append('action', 'update_achievement');
@@ -2066,7 +2273,7 @@ if (!isset($_SESSION['admin'])) {
                 })
                     .then(res => res.json())
                     .then(data => {
-                        showMessage(data.status === 'success' ? 'success' : 'danger', data.message);
+                        showMessage(data.status === 'success' ? 'success' : 'error', data.message);
                         fetchAchievements();
                     });
             }
@@ -2085,6 +2292,7 @@ if (!isset($_SESSION['admin'])) {
         fetchAchievements();
     });
 </script>
+
 <!-- BLOG BÖLÜMÜ -->
 <!-- Kişisel Yazılar -->
 <script>
@@ -2760,6 +2968,7 @@ if (!isset($_SESSION['admin'])) {
         fetchTechInterests();
     });
 </script>
+
 <!--GALERİ SCRİPT-->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -2893,7 +3102,7 @@ if (!isset($_SESSION['admin'])) {
     // Font Awesome ikonları için
     document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">');
 </script>
-<!--SSS-->
+
 <!-- SSS -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
