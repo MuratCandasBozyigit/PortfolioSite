@@ -209,7 +209,6 @@ $gal      = getLastRow($pdo, 'gallery');
     <div class="container text-white">
         <h1 class="display-4 fw-bold">Merhaba, ben Murat 👨‍💻</h1>
         <p class="lead">Web Developer &amp; Software Developer</p>
-        <a href="#whoami" class="btn btn-primary mt-3">Devam Et</a>
     </div>
 </section>
 
