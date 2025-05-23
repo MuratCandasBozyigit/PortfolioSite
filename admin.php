@@ -6,9 +6,11 @@ $port = '3306';
 $dbname = 'dunyani1_Portfolio';
 $username = 'murat';
 $password = '81644936.Ma';
-
+$charset  = 'utf8mb4';
 try {
-    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=$charset", $username, $password, [
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES $charset"
+    ]);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     initializeDatabase($pdo);
 } catch (PDOException $e) {

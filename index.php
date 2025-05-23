@@ -16,10 +16,13 @@ $options = [
 ];
 
 try {
+    // PDO bağlantısı oluşturuluyor
     $pdo = new PDO($dsn, $username, $password, $options);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("Database connection error: " . $e->getMessage());
+    die("Veritabanı bağlantısı başarısız: " . $e->getMessage());
 }
+
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit_faq"])) {
     $name = trim($_POST["name"]);
