@@ -1277,18 +1277,18 @@ if (!isset($_SESSION['admin'])) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- WHOAMI SCRİPT -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('whoamiForm');
         const textarea = document.getElementById('whoami_textarea');
-        const msg = document.getElementById('whoamiMessage');
         const list = document.getElementById('whoamiList');
 
         function loadWhoamiList() {
             fetch('admin.php?action=get_whoami')
                 .then(res => res.json())
                 .then(data => {
-                    list.innerHTML = ''; // Önce temizle
+                    list.innerHTML = '';
                     if (data.status === 'success') {
                         data.data.forEach(item => {
                             const li = document.createElement('li');
@@ -1304,19 +1304,39 @@ if (!isset($_SESSION['admin'])) {
                             updateBtn.textContent = 'Güncelle';
                             updateBtn.className = 'btn btn-warning';
                             updateBtn.onclick = function () {
-                                const newContent = prompt('Yeni içerik:', item.whoamiContent);
-                                if (newContent !== null && newContent.trim() !== '') {
-                                    updateWhoami(item.id, newContent);
-                                }
+                                Swal.fire({
+                                    title: 'İçeriği Güncelle',
+                                    input: 'textarea',
+                                    inputLabel: 'Yeni içerik',
+                                    inputValue: item.whoamiContent,
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Kaydet',
+                                    cancelButtonText: 'İptal',
+                                    inputValidator: (value) => {
+                                        if (!value.trim()) return 'İçerik boş olamaz!';
+                                    }
+                                }).then(result => {
+                                    if (result.isConfirmed) {
+                                        updateWhoami(item.id, result.value);
+                                    }
+                                });
                             };
 
                             const deleteBtn = document.createElement('button');
                             deleteBtn.textContent = 'Sil';
                             deleteBtn.className = 'btn btn-danger';
                             deleteBtn.onclick = function () {
-                                if (confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
-                                    deleteWhoami(item.id);
-                                }
+                                Swal.fire({
+                                    title: 'Silmek istediğinize emin misiniz?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Evet, sil',
+                                    cancelButtonText: 'Vazgeç'
+                                }).then(result => {
+                                    if (result.isConfirmed) {
+                                        deleteWhoami(item.id);
+                                    }
+                                });
                             };
 
                             buttonGroup.appendChild(updateBtn);
@@ -1352,7 +1372,10 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    Swal.fire({
+                        icon: data.status === 'success' ? 'success' : 'error',
+                        title: data.message
+                    });
                     loadWhoamiList();
                 });
         }
@@ -1368,15 +1391,14 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    Swal.fire({
+                        icon: data.status === 'success' ? 'success' : 'error',
+                        title: data.message
+                    });
                     loadWhoamiList();
                 });
         }
 
-        // Sayfa yüklenince veriyi çek
-        loadWhoamiList();
-
-        // Form gönderildiğinde
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(form);
@@ -1388,21 +1410,28 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
+                    Swal.fire({
+                        icon: data.status === 'success' ? 'success' : 'error',
+                        title: data.message
+                    });
                     if (data.status === 'success') {
-                        msg.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
                         form.reset();
-                        loadWhoamiList(); // Listeyi güncelle
-                    } else {
-                        msg.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                        loadWhoamiList();
                     }
                 })
                 .catch(err => {
                     console.error('Kayıt hatası:', err);
-                    msg.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Bir hata oluştu.'
+                    });
                 });
         });
+
+        loadWhoamiList();
     });
 </script>
+
 <!--İLETİŞİM SCRİPT-->
 <script>
     // GLOBAL SCOPE —> HER YERDEN ÇAĞRILABİLSİN
