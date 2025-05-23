@@ -589,8 +589,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     exit;
 }
 
-
-
 // GALERİ CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'upload_gallery') {
     $type = $_POST['type'];
@@ -631,7 +629,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     ]);
     exit;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
     // GALERİ ÖĞELERİNİ GETİR
     if ($_GET['action'] === 'get_gallery_items' && isset($_GET['type'])) {
