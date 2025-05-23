@@ -199,6 +199,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
                 <li class="nav-item"><a class="nav-link" href="#gallery">Galeri</a></li>
                 <li class="nav-item"><a class="nav-link" href="#contact">İletişim</a></li>
+                <li class="nav-item"><a class="nav-link" href="#sss">SSS</a></li>
             </ul>
         </div>
     </div>
