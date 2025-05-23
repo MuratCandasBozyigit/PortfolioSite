@@ -101,29 +101,38 @@ $gal      = getLastRow($pdo, 'gallery');
             z-index: 1;
         }
 
-        h1, h2 { font-family: 'Fira Code', monospace; }
+        h1, h2 {
+            font-family: 'Fira Code', monospace;
+        }
 
+        /* Section styles */
         .section {
             padding: 30px 0;
-            margin-top: 20px;
+            margin: 20px 0;
             opacity: 0;
             transition: opacity 0.5s ease, transform 0.5s ease;
             transform: translateY(30px);
-            position: relative;
+            position: absolute; /* Section'ı mutlak konumda yapıyoruz */
+            width: 100%; /* 100% genişlik */
+            bottom: 0; /* Alt kısımda düzgün görünüm */
+            background-color: rgba(40, 44, 52, 0.9); /* Koyu arka plan */
+            left: 0; /* Solda hizalama */
         }
 
         .section.visible {
-            opacity: 1;
-            transform: translateY(0);
+            opacity: 1; /* Görünür yapılır */
+            transform: translateY(0); /* Normal konumuna gelir */
+            z-index: 1; /* Üst kısımda görünür */
         }
 
         .card {
-            background-color: #2A2E35; /* Darker color for better visibility */
+            background-color: #2A2E35;
             border: none;
             border-radius: 12px;
-            color: #D1FAE5; /* Lighter text for cards */
+            color: #D1FAE5;
             transition: transform 0.3s, box-shadow 0.3s;
-            height: 100%; /* Ensuring equal height */
+            height: 100%;
+            max-width: 100%; /* Maksimum genişlik önlemeyi açık tutalım */
         }
 
         .card:hover {
@@ -153,6 +162,18 @@ $gal      = getLastRow($pdo, 'gallery');
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-size: 2rem;
+        }
+
+        /* Ok simgesi için stil */
+        .arrow {
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-align: center;
+        }
+
+        .arrow.visible {
+            opacity: 1;
         }
     </style>
 </head>
@@ -187,7 +208,7 @@ $gal      = getLastRow($pdo, 'gallery');
     </div>
 </section>
 
-<div class="container">
+<div class="container main-content">
 
     <!-- Whoami -->
     <section id="whoami" class="section">
@@ -195,6 +216,7 @@ $gal      = getLastRow($pdo, 'gallery');
         <div class="card p-4">
             <p><?= nl2br(htmlspecialchars($whoami['whoamiContent'] ?? 'Henüz metin eklenmedi.')) ?></p>
         </div>
+        <div class="arrow" id="arrow-whoami">⬇️</div>
     </section>
 
     <!-- Hakkımda -->
@@ -222,6 +244,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 </div>
             </div>
         </div>
+        <div class="arrow" id="arrow-about">⬇️</div>
     </section>
 
     <!-- Blog -->
@@ -257,6 +280,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 </div>
             </div>
         </div>
+        <div class="arrow" id="arrow-blog">⬇️</div>
     </section>
 
     <!-- Galeri -->
@@ -272,6 +296,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 </div>
             </div>
         </div>
+        <div class="arrow" id="arrow-gallery">⬇️</div>
     </section>
 
     <!-- İletişim -->
@@ -287,6 +312,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 <?php if ($contact['instagram']): ?><a href="<?= htmlspecialchars($contact['instagram']) ?>">Instagram</a> <?php endif; ?>
             </p>
         </div>
+        <div class="arrow" id="arrow-contact">⬇️</div>
     </section>
 
 </div>
@@ -302,39 +328,34 @@ $gal      = getLastRow($pdo, 'gallery');
     const sections = document.querySelectorAll('.section');
     const links = document.querySelectorAll('.nav-link');
 
-    // Sayfa yüklendiğinde hero section'ı göster
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelector('#hero').classList.add('visible');
-    });
+    // Sayfa yüklendiğinde ilk bölümü göster
+    sections[0].classList.add('visible'); // İlk bölümü görünür yap
 
     links.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+            const targetId = this.getAttribute('href'); // Hedef bölüm
+            const target = document.querySelector(targetId);
 
             // Tüm section'ları gizle
             sections.forEach(section => {
                 section.classList.remove('visible');
             });
 
-            // Hedef section'ı göster ve scroll et
+            // Hedef section'ı aç
             target.classList.add('visible');
-            setTimeout(() => {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start' // Üst kısımla hizala
-                });
-            }, 50); // Kısa bir gecikme ekle
-        });
-    });
 
-    // Scroll event listener'ı ekle (opsiyonel)
-    window.addEventListener('scroll', () => {
-        sections.forEach(section => {
-            const rect = section.getBoundingClientRect();
-            if(rect.top < window.innerHeight * 0.8 && rect.bottom >= 0) {
-                section.classList.add('visible');
-            }
+            // Scroll to target section
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Ok simgesini göster
+            const arrow = target.querySelector('.arrow');
+            arrow.classList.add('visible');
+
+            // Ok simgesini 2 saniye sonra gizle
+            setTimeout(() => {
+                arrow.classList.remove('visible');
+            }, 2000);
         });
     });
 </script>
