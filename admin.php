@@ -312,9 +312,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-
-// Bağlantı ve başlangıç kontrolleri yapılmış varsayılıyor
-
+//BAŞARIM CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? null;
 
@@ -360,7 +358,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'] ?? null;
 
@@ -371,6 +368,194 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 }
+
+// KİŞİSEL YAZI CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    // LİSTELEME
+    if ($_GET['action'] === 'get_personal_posts') {
+        $stmt = $pdo->query("SELECT * FROM personal_posts ORDER BY created_at DESC");
+        $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['status' => 'success', 'posts' => $posts]);
+        exit;
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+    // EKLEME
+    if ($_GET['action'] === 'save_personal_post') {
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        if (empty($title) || empty($content)) {
+            echo json_encode(['status' => 'error', 'message' => 'Başlık ve içerik gereklidir!']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO personal_posts (title, content) VALUES (?, ?)");
+            $stmt->execute([$title, $content]);
+            echo json_encode(['status' => 'success', 'message' => 'Yazı kaydedildi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+
+    // GÜNCELLEME
+    if ($_GET['action'] === 'update_personal_post') {
+        $id = (int)$_POST['id'];
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        try {
+            $stmt = $pdo->prepare("UPDATE personal_posts SET title=?, content=? WHERE id=?");
+            $stmt->execute([$title, $content, $id]);
+            echo json_encode(['status' => 'success', 'message' => 'Yazı güncellendi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Güncelleme hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_personal_post' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM personal_posts WHERE id=?");
+        $stmt->execute([$id]);
+        echo json_encode(['status' => 'success', 'message' => 'Yazı silindi!']);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Silme hatası: '.$e->getMessage()]);
+    }
+    exit;
+}
+
+// SEYAHAT NOTLARI CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    // LİSTELEME
+    if ($_GET['action'] === 'get_travel_notes') {
+        $stmt = $pdo->query("SELECT * FROM travel_notes ORDER BY created_at DESC");
+        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['status' => 'success', 'notes' => $notes]);
+        exit;
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+    // EKLEME
+    if ($_GET['action'] === 'save_travel_note') {
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        if (empty($title) || empty($content)) {
+            echo json_encode(['status' => 'error', 'message' => 'Başlık ve içerik gereklidir!']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO travel_notes (title, content) VALUES (?, ?)");
+            $stmt->execute([$title, $content]);
+            echo json_encode(['status' => 'success', 'message' => 'Not kaydedildi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+
+    // GÜNCELLEME
+    if ($_GET['action'] === 'update_travel_note') {
+        $id = (int)$_POST['id'];
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        try {
+            $stmt = $pdo->prepare("UPDATE travel_notes SET title=?, content=? WHERE id=?");
+            $stmt->execute([$title, $content, $id]);
+            echo json_encode(['status' => 'success', 'message' => 'Not güncellendi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Güncelleme hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+}
+// SEYAHAT NOTLARI SİLME
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_travel_note' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM travel_notes WHERE id=?");
+        $stmt->execute([$id]);
+        echo json_encode(['status' => 'success', 'message' => 'Not silindi!']);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Silme hatası: '.$e->getMessage()]);
+    }
+    exit;
+}
+
+
+
+
+// KITAP & FILM ÖNERİLERİ CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    // LİSTELEME
+    if ($_GET['action'] === 'get_book_film_recommendations') {
+        $stmt = $pdo->query("SELECT * FROM book_film_recommendations ORDER BY created_at DESC");
+        $recommendations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['status' => 'success', 'recommendations' => $recommendations]);
+        exit;
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+    // EKLEME
+    if ($_GET['action'] === 'save_book_film_recommendation') {
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+        $type = trim($_POST['type']);
+
+        if (empty($title) || empty($content) || empty($type)) {
+            echo json_encode(['status' => 'error', 'message' => 'Tüm alanlar zorunludur!']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO book_film_recommendations (title, content, type) VALUES (?, ?, ?)");
+            $stmt->execute([$title, $content, $type]);
+            echo json_encode(['status' => 'success', 'message' => 'Öneri başarıyla kaydedildi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+
+    // GÜNCELLEME
+    if ($_GET['action'] === 'update_book_film_recommendation') {
+        $id = (int)$_POST['id'];
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+        $type = trim($_POST['type']);
+
+        try {
+            $stmt = $pdo->prepare("UPDATE book_film_recommendations SET title=?, content=?, type=? WHERE id=?");
+            $stmt->execute([$title, $content, $type, $id]);
+            echo json_encode(['status' => 'success', 'message' => 'Öneri başarıyla güncellendi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Güncelleme hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+}
+
+// SİLME
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_book_film_recommendation' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM book_film_recommendations WHERE id=?");
+        $stmt->execute([$id]);
+        echo json_encode(['status' => 'success', 'message' => 'Öneri başarıyla silindi!']);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Silme hatası: '.$e->getMessage()]);
+    }
+    exit;
+}
+
+
 
 
 function initializeDatabase($pdo) {
@@ -439,6 +624,7 @@ function initializeDatabase($pdo) {
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             content TEXT NOT NULL,
+            type ENUM('book', 'film', 'series') NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )",
         "CREATE TABLE IF NOT EXISTS tech_interests (
@@ -462,7 +648,6 @@ function initializeDatabase($pdo) {
         $pdo->exec($query);
     }
 }
-// Giriş kontrolü
 if (!isset($_SESSION['admin'])) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $_POST['username'] ?? '';
@@ -531,6 +716,7 @@ if (!isset($_SESSION['admin'])) {
     <meta charset="UTF-8">
     <title>Admin Paneli</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .animated-btn {
             transition: all 0.3s ease;
@@ -550,10 +736,6 @@ if (!isset($_SESSION['admin'])) {
     </style>
 </head>
 <body class="bg-light p-4">
-
-
-
-
 <div class="container ">
 
     <!-- WHOAMI Bölümü -->
@@ -721,15 +903,20 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="personalCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
                             <div class="accordion-body">
-                                <form method="post">
+                                <form id="personalPostForm">
                                     <div class="mb-2">
-                                        <input type="text" name="personal_title" class="form-control" placeholder="Yazı Başlığı" required>
+                                        <input type="text" name="title" class="form-control" placeholder="Yazı Başlığı" required>
                                     </div>
                                     <div class="mb-2">
-                                        <textarea name="personal_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                        <textarea name="content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
                                     </div>
-                                    <button type="submit" name="save_personal" class="btn btn-success">Kaydet</button>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+
+                                <div class="mt-4">
+                                    <h5>Kayıtlı Yazılar</h5>
+                                    <ul id="personalPostsList" class="list-group"></ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -743,15 +930,20 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="travelCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
                             <div class="accordion-body">
-                                <form method="post">
+                                <form id="travelNoteForm">
                                     <div class="mb-2">
-                                        <input type="text" name="travel_title" class="form-control" placeholder="Yazı Başlığı" required>
+                                        <input type="text" name="title" class="form-control" placeholder="Yazı Başlığı" required>
                                     </div>
                                     <div class="mb-2">
-                                        <textarea name="travel_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                        <textarea name="content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
                                     </div>
-                                    <button type="submit" name="save_travel" class="btn btn-success">Kaydet</button>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+
+                                <div class="mt-4">
+                                    <h5>Kayıtlı Notlar</h5>
+                                    <ul id="travelNotesList" class="list-group"></ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -765,15 +957,28 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="bookFilmCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
                             <div class="accordion-body">
-                                <form method="post">
+                                <form id="bookFilmForm">
                                     <div class="mb-2">
-                                        <input type="text" name="book_film_title" class="form-control" placeholder="Başlık" required>
+                                        <input type="text" name="title" class="form-control" placeholder="Başlık (Örnek: Yüzüklerin Efendisi)" required>
                                     </div>
                                     <div class="mb-2">
-                                        <textarea name="book_film_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                        <textarea name="content" class="form-control" rows="4" placeholder="İçerik (Örnek: J.R.R. Tolkien'in epik fantastik serisi...)" required></textarea>
                                     </div>
-                                    <button type="submit" name="save_book_film" class="btn btn-success">Kaydet</button>
+                                    <div class="mb-2">
+                                        <select name="type" class="form-select" required>
+                                            <option value="">Tür Seçin</option>
+                                            <option value="book">Kitap</option>
+                                            <option value="film">Film</option>
+                                            <option value="series">Dizi</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+
+                                <div class="mt-4">
+                                    <h5>Kayıtlı Öneriler</h5>
+                                    <ul id="bookFilmList" class="list-group"></ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1390,13 +1595,11 @@ if (!isset($_SESSION['admin'])) {
         const list = document.getElementById('educationList');
         const messageBox = document.getElementById('eduMessage');
 
-        // Mesaj gösterme fonksiyonu
         function showMessage(type, text) {
             messageBox.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
             setTimeout(() => messageBox.innerHTML = '', 4000);
         }
 
-        // Form submit işlemi
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(form);
@@ -1414,7 +1617,6 @@ if (!isset($_SESSION['admin'])) {
                 });
         });
 
-        // Eğitim verilerini listele
         function fetchEducation() {
             fetch('admin.php?action=get_education')
                 .then(res => res.json())
@@ -1423,16 +1625,21 @@ if (!isset($_SESSION['admin'])) {
                     if (data.status === 'success') {
                         data.data.forEach(item => {
                             list.innerHTML += `
-                        <li class="list-group-item d-flex justify-content-between align-items-start" data-id="${item.id}">
+                        <li class="list-group-item d-flex justify-content-between align-items-start"
+                            data-id="${item.id}"
+                            data-title="${escapeHtml(item.title)}"
+                            data-institution="${escapeHtml(item.institution)}"
+                            data-start-date="${item.start_date || ''}"
+                            data-end-date="${item.end_date || ''}"
+                            data-description="${escapeHtml(item.description || '')}">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">${item.title} - ${item.institution}</div>
+                                <div class="fw-bold">${escapeHtml(item.title)} - ${escapeHtml(item.institution)}</div>
                                 ${item.start_date || ''} - ${item.end_date || ''}<br>
-                                ${item.description || ''}
+                                ${escapeHtml(item.description || '')}
                             </div>
                             <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
                             <button class="btn btn-sm btn-danger delete-btn">Sil</button>
-                        </li>
-                    `;
+                        </li>`;
                         });
                     } else {
                         list.innerHTML = '<li class="list-group-item">Kayıt bulunamadı.</li>';
@@ -1440,14 +1647,11 @@ if (!isset($_SESSION['admin'])) {
                 });
         }
 
-        fetchEducation(); // İlk veriyi çek
-
-        // Liste üzerinde tıklama olayları
         list.addEventListener('click', function (e) {
             const li = e.target.closest('li');
+            if (!li) return;
             const id = li.dataset.id;
 
-            // Silme işlemi
             if (e.target.classList.contains('delete-btn')) {
                 const formData = new FormData();
                 formData.append('action', 'delete_education');
@@ -1463,24 +1667,19 @@ if (!isset($_SESSION['admin'])) {
                     });
             }
 
-            // Güncelleme işlemi
             if (e.target.classList.contains('update-btn')) {
                 const contentDiv = li.querySelector('.ms-2');
-                const [titleInst, dates, desc] = contentDiv.innerHTML.split('<br>');
-                const [title, institution] = titleInst.replace(/<\/?div.*?>/g, '').split(' - ');
-
                 contentDiv.innerHTML = `
-                <input class="form-control mb-1" name="title" value="${title.trim()}">
-                <input class="form-control mb-1" name="institution" value="${institution.trim()}">
-                <input class="form-control mb-1" type="date" name="start_date">
-                <input class="form-control mb-1" type="date" name="end_date">
-                <textarea class="form-control mb-1" name="description">${desc.trim()}</textarea>
+                <input class="form-control mb-1" name="title" value="${li.dataset.title}">
+                <input class="form-control mb-1" name="institution" value="${li.dataset.institution}">
+                <input class="form-control mb-1" type="date" name="start_date" value="${li.dataset.startDate}">
+                <input class="form-control mb-1" type="date" name="end_date" value="${li.dataset.endDate}">
+                <textarea class="form-control mb-1" name="description">${li.dataset.description}</textarea>
                 <button class="btn btn-sm btn-success save-btn">Kaydet</button>
             `;
                 li.querySelector('.update-btn').remove();
             }
 
-            // Kaydetme işlemi
             if (e.target.classList.contains('save-btn')) {
                 const title = li.querySelector('input[name="title"]').value;
                 const institution = li.querySelector('input[name="institution"]').value;
@@ -1508,6 +1707,18 @@ if (!isset($_SESSION['admin'])) {
                     });
             }
         });
+
+        // HTML escape fonksiyonu
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        fetchEducation();
     });
 </script>
 <!-- Sertifikalar ve Başarılar -->
@@ -1532,15 +1743,20 @@ if (!isset($_SESSION['admin'])) {
                     if (data.status === 'success') {
                         data.data.forEach(item => {
                             listContainer.innerHTML += `
-                            <li class="list-group-item d-flex justify-content-between align-items-start" data-id="${item.id}">
-                                <div class="ms-2 me-auto">
-                                    <div class="fw-bold">${item.title} - ${item.issuer}</div>
-                                    ${item.date || ''}<br>
-                                    ${item.description || ''}
-                                </div>
-                                <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
-                                <button class="btn btn-sm btn-danger delete-btn">Sil</button>
-                            </li>`;
+                        <li class="list-group-item d-flex justify-content-between align-items-start"
+                            data-id="${item.id}"
+                            data-title="${escapeHtml(item.title)}"
+                            data-issuer="${escapeHtml(item.issuer || '')}"
+                            data-date="${item.date || ''}"
+                            data-description="${escapeHtml(item.description || '')}">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">${escapeHtml(item.title)}${item.issuer ? ' - ' + escapeHtml(item.issuer) : ''}</div>
+                                ${item.date || ''}<br>
+                                ${escapeHtml(item.description || '')}
+                            </div>
+                            <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                            <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                        </li>`;
                         });
                     } else {
                         listContainer.innerHTML = '<li class="list-group-item">Kayıt bulunamadı.</li>';
@@ -1569,6 +1785,7 @@ if (!isset($_SESSION['admin'])) {
 
         listContainer.addEventListener('click', function (e) {
             const li = e.target.closest('li');
+            if (!li) return;
             const id = li.dataset.id;
 
             if (e.target.classList.contains('delete-btn')) {
@@ -1588,14 +1805,11 @@ if (!isset($_SESSION['admin'])) {
 
             if (e.target.classList.contains('update-btn')) {
                 const contentDiv = li.querySelector('.ms-2');
-                const [titleIssuer, dateLine, descLine] = contentDiv.innerHTML.split('<br>');
-                const [title, issuer] = titleIssuer.replace(/<\/?div.*?>/g, '').split(' - ');
-
                 contentDiv.innerHTML = `
-                <input class="form-control mb-1" name="title" value="${title.trim()}">
-                <input class="form-control mb-1" name="issuer" value="${issuer.trim()}">
-                <input class="form-control mb-1" type="date" name="date" value="${dateLine.trim()}">
-                <textarea class="form-control mb-1" name="description">${descLine.trim()}</textarea>
+                <input class="form-control mb-1" name="title" value="${li.dataset.title}">
+                <input class="form-control mb-1" name="issuer" value="${li.dataset.issuer}">
+                <input class="form-control mb-1" type="date" name="date" value="${li.dataset.date}">
+                <textarea class="form-control mb-1" name="description">${li.dataset.description}</textarea>
                 <button class="btn btn-sm btn-success save-btn">Kaydet</button>
             `;
                 li.querySelector('.update-btn').remove();
@@ -1627,11 +1841,529 @@ if (!isset($_SESSION['admin'])) {
             }
         });
 
+        // HTML escape fonksiyonu
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         fetchAchievements();
+    });
+</script>
+<!-- BLOG BÖLÜMÜ -->
+<!-- Kişisel Yazılar -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('personalPostForm');
+        const list = document.getElementById('personalPostsList');
+
+        // FORM GÖNDERME
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            Swal.fire({
+                title: 'Kaydediliyor...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('admin.php?action=save_personal_post', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: data.message,
+                            confirmButtonColor: '#3085d6'
+                        });
+                        form.reset();
+                        fetchPersonalPosts();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: data.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                });
+        });
+
+        // LİSTELEME
+        function fetchPersonalPosts() {
+            fetch('admin.php?action=get_personal_posts')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.posts.forEach(post => {
+                            list.innerHTML += `
+                    <li class="list-group-item" data-id="${post.id}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">${escapeHtml(post.title)}</h5>
+                                <p class="mb-0">${escapeHtml(post.content.substring(0, 100))}...</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                                <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                            </div>
+                        </div>
+                    </li>`;
+                        });
+
+                        // Silme ve Güncelleme Eventleri
+                        document.querySelectorAll('.delete-btn').forEach(btn => {
+                            btn.addEventListener('click', deletePost);
+                        });
+                        document.querySelectorAll('.update-btn').forEach(btn => {
+                            btn.addEventListener('click', updatePostUI);
+                        });
+                    }
+                });
+        }
+
+        // SİLME
+        function deletePost(e) {
+            const id = e.target.closest('li').dataset.id;
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu yazı kalıcı olarak silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`admin.php?action=delete_personal_post&id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire('Silindi!', data.message, 'success');
+                                fetchPersonalPosts();
+                            }
+                        });
+                }
+            });
+        }
+
+        // GÜNCELLEME ARAYÜZÜ
+        function updatePostUI(e) {
+            const li = e.target.closest('li');
+            const id = li.dataset.id;
+            const title = li.querySelector('h5').textContent;
+            const content = li.querySelector('p').textContent + '...'; // Kesilmiş içeriği tamamlama
+
+            Swal.fire({
+                title: 'Yazıyı Güncelle',
+                html: `
+                <input id="swal-title" class="swal2-input" value="${escapeHtml(title)}" required>
+                <textarea id="swal-content" class="swal2-textarea" required>${escapeHtml(content)}</textarea>
+            `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: () => {
+                    return {
+                        title: document.getElementById('swal-title').value,
+                        content: document.getElementById('swal-content').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updatePost(id, result.value.title, result.value.content);
+                }
+            });
+        }
+
+        // GÜNCELLEME AJAX
+        function updatePost(id, title, content) {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('title', title);
+            formData.append('content', content);
+
+            fetch('admin.php?action=update_personal_post', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Başarılı!', data.message, 'success');
+                        fetchPersonalPosts();
+                    } else {
+                        Swal.fire('Hata!', data.message, 'error');
+                    }
+                });
+        }
+
+        // HTML Escape
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/[&<"'>]/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];
+            });
+        }
+
+        // İlk yükleme
+        fetchPersonalPosts();
+    });
+</script>
+<!-- Seyahat Notları -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('travelNoteForm');
+        const list = document.getElementById('travelNotesList');
+
+        // FORM GÖNDERME
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            Swal.fire({
+                title: 'Kaydediliyor...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('admin.php?action=save_travel_note', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: data.message,
+                            confirmButtonColor: '#3085d6'
+                        });
+                        form.reset();
+                        fetchTravelNotes();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: data.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                });
+        });
+
+        // LİSTELEME
+        function fetchTravelNotes() {
+            fetch('admin.php?action=get_travel_notes')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.notes.forEach(note => {
+                            list.innerHTML += `
+                    <li class="list-group-item" data-id="${note.id}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">${escapeHtml(note.title)}</h5>
+                                <p class="mb-0">${escapeHtml(note.content.substring(0, 100))}...</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                                <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                            </div>
+                        </div>
+                    </li>`;
+                        });
+
+                        // Event listeners
+                        document.querySelectorAll('.delete-btn').forEach(btn => {
+                            btn.addEventListener('click', deleteTravelNote);
+                        });
+                        document.querySelectorAll('.update-btn').forEach(btn => {
+                            btn.addEventListener('click', updateTravelNoteUI);
+                        });
+                    }
+                });
+        }
+
+        // SİLME
+        function deleteTravelNote(e) {
+            const id = e.target.closest('li').dataset.id;
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu seyahat notu silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`admin.php?action=delete_travel_note&id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire('Silindi!', data.message, 'success');
+                                fetchTravelNotes();
+                            }
+                        });
+                }
+            });
+        }
+
+        // GÜNCELLEME ARAYÜZÜ
+        function updateTravelNoteUI(e) {
+            const li = e.target.closest('li');
+            const id = li.dataset.id;
+            const title = li.querySelector('h5').textContent;
+            const content = li.querySelector('p').textContent + '...';
+
+            Swal.fire({
+                title: 'Notu Güncelle',
+                html: `
+                <input id="swal-title" class="swal2-input" value="${escapeHtml(title)}" required>
+                <textarea id="swal-content" class="swal2-textarea" required>${escapeHtml(content)}</textarea>
+            `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: () => {
+                    return {
+                        title: document.getElementById('swal-title').value,
+                        content: document.getElementById('swal-content').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateTravelNote(id, result.value.title, result.value.content);
+                }
+            });
+        }
+
+        // GÜNCELLEME AJAX
+        function updateTravelNote(id, title, content) {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('title', title);
+            formData.append('content', content);
+
+            fetch('admin.php?action=update_travel_note', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Başarılı!', data.message, 'success');
+                        fetchTravelNotes();
+                    } else {
+                        Swal.fire('Hata!', data.message, 'error');
+                    }
+                });
+        }
+
+        // HTML Escape
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/[&<"'>]/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];
+            });
+        }
+
+        // İlk yükleme
+        fetchTravelNotes();
     });
 </script>
 
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('bookFilmForm');
+        const list = document.getElementById('bookFilmList');
+
+        // FORM GÖNDERME
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            Swal.fire({
+                title: 'Kaydediliyor...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('admin.php?action=save_book_film_recommendation', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: data.message,
+                            confirmButtonColor: '#3085d6'
+                        });
+                        form.reset();
+                        fetchBookFilmRecommendations();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: data.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                });
+        });
+
+        // LİSTELEME
+        function fetchBookFilmRecommendations() {
+            fetch('admin.php?action=get_book_film_recommendations')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.recommendations.forEach(item => {
+                            const badgeColor = item.type === 'book' ? 'bg-primary' : item.type === 'film' ? 'bg-danger' : 'bg-warning';
+                            list.innerHTML += `
+                    <li class="list-group-item" data-id="${item.id}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge ${badgeColor} me-2">${item.type === 'book' ? 'Kitap' : item.type === 'film' ? 'Film' : 'Dizi'}</span>
+                                <h5 class="d-inline-block mb-1">${escapeHtml(item.title)}</h5>
+                                <p class="mb-0">${escapeHtml(item.content.substring(0, 100))}...</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                                <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                            </div>
+                        </div>
+                    </li>`;
+                        });
+
+                        // Event listeners
+                        document.querySelectorAll('.delete-btn').forEach(btn => {
+                            btn.addEventListener('click', deleteBookFilmRecommendation);
+                        });
+                        document.querySelectorAll('.update-btn').forEach(btn => {
+                            btn.addEventListener('click', updateBookFilmRecommendationUI);
+                        });
+                    }
+                });
+        }
+
+        // SİLME
+        function deleteBookFilmRecommendation(e) {
+            const id = e.target.closest('li').dataset.id;
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu öneri kalıcı olarak silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`admin.php?action=delete_book_film_recommendation&id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire('Silindi!', data.message, 'success');
+                                fetchBookFilmRecommendations();
+                            }
+                        });
+                }
+            });
+        }
+
+        // GÜNCELLEME ARAYÜZÜ
+        function updateBookFilmRecommendationUI(e) {
+            const li = e.target.closest('li');
+            const id = li.dataset.id;
+            const type = li.querySelector('.badge').textContent.trim();
+            const title = li.querySelector('h5').textContent;
+            const content = li.querySelector('p').textContent + '...';
+
+            Swal.fire({
+                title: 'Öneriyi Güncelle',
+                html: `
+                <select id="swal-type" class="swal2-select mb-2">
+                    <option value="book" ${type === 'Kitap' ? 'selected' : ''}>Kitap</option>
+                    <option value="film" ${type === 'Film' ? 'selected' : ''}>Film</option>
+                    <option value="series" ${type === 'Dizi' ? 'selected' : ''}>Dizi</option>
+                </select>
+                <input id="swal-title" class="swal2-input" value="${escapeHtml(title)}" required>
+                <textarea id="swal-content" class="swal2-textarea" required>${escapeHtml(content)}</textarea>
+            `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: () => {
+                    return {
+                        type: document.getElementById('swal-type').value,
+                        title: document.getElementById('swal-title').value,
+                        content: document.getElementById('swal-content').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateBookFilmRecommendation(id, result.value.type, result.value.title, result.value.content);
+                }
+            });
+        }
+
+        // GÜNCELLEME AJAX
+        function updateBookFilmRecommendation(id, type, title, content) {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('type', type);
+            formData.append('title', title);
+            formData.append('content', content);
+
+            fetch('admin.php?action=update_book_film_recommendation', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Başarılı!', data.message, 'success');
+                        fetchBookFilmRecommendations();
+                    } else {
+                        Swal.fire('Hata!', data.message, 'error');
+                    }
+                });
+        }
+
+        // HTML Escape
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/[&<"'>]/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];
+            });
+        }
+
+        // İlk yükleme
+        fetchBookFilmRecommendations();
+    });
+</script>
 
 
 </body>
