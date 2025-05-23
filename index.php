@@ -267,6 +267,7 @@ $gal      = getLastRow($pdo, 'gallery');
             <div class="col-md-6">
                 <div class="card p-3">
                     <h6>Kişisel Yazılar</h6>
+                    <p><?= nl2br(htmlspecialchars($ppost['title'] ?? '')) ?></p>
                     <p><?= nl2br(htmlspecialchars($ppost['content'] ?? '')) ?></p>
                     <small class="text-muted"><?= htmlspecialchars($ppost['created_at'] ?? '') ?></small>
                 </div>
@@ -274,6 +275,7 @@ $gal      = getLastRow($pdo, 'gallery');
             <div class="col-md-6">
                 <div class="card p-3">
                     <h6>Seyahat Notları</h6>
+                    <p><?= nl2br(htmlspecialchars($tnotes['title'] ?? '')) ?></p>
                     <p><?= nl2br(htmlspecialchars($tnotes['content'] ?? '')) ?></p>
                     <small class="text-muted"><?= htmlspecialchars($tnotes['created_at'] ?? '') ?></small>
                 </div>
@@ -281,6 +283,7 @@ $gal      = getLastRow($pdo, 'gallery');
             <div class="col-md-6">
                 <div class="card p-3">
                     <h6>Kitap &amp; Film &amp; Dizi</h6>
+                    <p><?= nl2br(htmlspecialchars($bfrec['title'] ?? '')) ?></p>
                     <p><?= nl2br(htmlspecialchars($bfrec['content'] ?? '')) ?></p>
                     <small class="text-muted"><?= htmlspecialchars($bfrec['type'] ?? '') ?> • <?= htmlspecialchars($bfrec['created_at'] ?? '') ?></small>
                 </div>
@@ -288,6 +291,7 @@ $gal      = getLastRow($pdo, 'gallery');
             <div class="col-md-6">
                 <div class="card p-3">
                     <h6>Teknoloji İlgi Alanlarım</h6>
+                    <p><?= nl2br(htmlspecialchars($tech['title'] ?? '')) ?></p>
                     <p><?= nl2br(htmlspecialchars($tech['content'] ?? '')) ?></p>
                     <small class="text-muted"><?= htmlspecialchars($tech['created_at'] ?? '') ?></small>
                 </div>
