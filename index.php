@@ -239,7 +239,6 @@ $gal      = getLastRow($pdo, 'gallery');
                 </div>
             </div>
         </div>
-        <div class="arrow" id="arrow-about">⬇️</div>
     </section>
 
     <!-- Blog -->
@@ -275,7 +274,6 @@ $gal      = getLastRow($pdo, 'gallery');
                 </div>
             </div>
         </div>
-        <div class="arrow" id="arrow-blog">⬇️</div>
     </section>
 
     <!-- Galeri -->
@@ -291,7 +289,6 @@ $gal      = getLastRow($pdo, 'gallery');
                 </div>
             </div>
         </div>
-        <div class="arrow" id="arrow-gallery">⬇️</div>
     </section>
 
     <!-- İletişim -->
@@ -307,7 +304,6 @@ $gal      = getLastRow($pdo, 'gallery');
                 <?php if ($contact['instagram']): ?><a href="<?= htmlspecialchars($contact['instagram']) ?>">Instagram</a> <?php endif; ?>
             </p>
         </div>
-        <div class="arrow" id="arrow-contact">⬇️</div>
     </section>
 
 </div>
