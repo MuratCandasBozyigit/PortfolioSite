@@ -72,6 +72,7 @@ $gal      = getLastRow($pdo, 'gallery');
         }
 
         .navbar {
+
             background-color: rgba(31, 41, 55, 0.9);
             backdrop-filter: blur(10px); /* Blur effect on the background */
         }
@@ -119,6 +120,7 @@ $gal      = getLastRow($pdo, 'gallery');
             bottom: 0; /* Alt kısımda düzgün görünüm */
             left: 0; /* Solda hizalama */
             border-radius: 10px; /* Corner rounding */
+
         }
 
         /* Özelleştirilmiş genişlik ve merkezi hizalama */
@@ -152,12 +154,14 @@ $gal      = getLastRow($pdo, 'gallery');
             background-color: #1F2937;
             color: snow;
             padding: 20px;
-            margin-top: 30px;
             text-align: center;
-            margin-top: auto; /* Footer'ı en aşağıda tutar */
-            z-index: 10; /* On top of sections */
-            width: 100%; /* Full width */
+            position: fixed; /* Footer'ı sabitler */
+            bottom: 0; /* Sayfanın altına yerleştirir */
+            left: 0; /* Sayfanın soluna hizalar */
+            width: 100%; /* Tam genişlik */
+            z-index: 10; /* Diğer içeriklerin üstünde görünmesini sağlar */
         }
+
 
         .gallery-img {
             max-height: 250px;
@@ -247,9 +251,10 @@ $gal      = getLastRow($pdo, 'gallery');
     </section>
 
     <!-- Blog -->
-    <section id="blog" class="section">
+    <section id="blog" class="section"style=" margin: -350px auto ; ">
         <h2 class="text-center section-title mb-5">✍️ Blog</h2>
-        <div class="row g-4">
+
+        <div class="row g-4"style="margin-bottom: 90px !important;" >
             <div class="col-md-6">
                 <div class="card p-3">
                     <h6>Kişisel Yazılar</h6>
