@@ -104,7 +104,8 @@ $gal      = getLastRow($pdo, 'gallery');
         h1, h2 { font-family: 'Fira Code', monospace; }
 
         .section {
-            padding: 60px 0;
+            padding: 30px 0; /* Üst padding azaltıldı */
+            margin-top: 20px; /* Üstten gelen boşluk azaltıldı */
             opacity: 0; /* Start invisible */
             transition: opacity 0.5s ease, transform 0.5s ease; /* Smooth transition */
             transform: translateY(30px); /* Slide in from below */
@@ -318,7 +319,7 @@ $gal      = getLastRow($pdo, 'gallery');
 
             // Scroll to top of the target section
             window.scrollTo({
-                top: target.offsetTop,
+                top: target.offsetTop - 70, // Navbar yüksekliği kadar kaydırma
                 behavior: 'smooth'
             });
 
