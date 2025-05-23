@@ -1277,7 +1277,6 @@ if (!isset($_SESSION['admin'])) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- WHOAMI SCRİPT -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('whoamiForm');
@@ -1434,9 +1433,17 @@ if (!isset($_SESSION['admin'])) {
 
 <!--İLETİŞİM SCRİPT-->
 <script>
-    // GLOBAL SCOPE —> HER YERDEN ÇAĞRILABİLSİN
-    function deleteContact(id) {
-        if (!confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
+    async function deleteContact(id) {
+        const result = await Swal.fire({
+            title: 'Emin misiniz?',
+            text: 'Bu kaydı silmek üzeresiniz!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, sil',
+            cancelButtonText: 'Vazgeç'
+        });
+
+        if (!result.isConfirmed) return;
 
         const formData = new FormData();
         formData.append('action', 'delete_contact');
@@ -1445,42 +1452,63 @@ if (!isset($_SESSION['admin'])) {
         fetch('admin.php', { method: 'POST', body: formData })
             .then(res => res.json())
             .then(resp => {
-                const contactMsg = document.getElementById('contactMessage');
-                contactMsg.innerHTML = `<div class="alert alert-${resp.status === 'success' ? 'success' : 'danger'}">${resp.message}</div>`;
-                loadContacts(); // Listeyi yeniden yükle
+                Swal.fire({
+                    icon: resp.status,
+                    title: resp.status === 'success' ? 'Başarılı' : 'Hata',
+                    text: resp.message
+                });
+                loadContacts();
             })
             .catch(err => console.error('Hata:', err));
     }
 
-    function updateContact(data) {
-        const phone = prompt("Telefon:", data.phone);
-        const email = prompt("E-Posta:", data.email);
-        const address = prompt("Adres:", data.address);
-        const twitter = prompt("Twitter:", data.twitter || '');
-        const linkedin = prompt("LinkedIn:", data.linkedin || '');
-        const instagram = prompt("Instagram:", data.instagram || '');
+    async function updateContact(data) {
+        const { value: formValues } = await Swal.fire({
+            title: 'İletişim Bilgilerini Güncelle',
+            html: `
+                <input id="swal-phone" class="swal2-input" placeholder="Telefon" value="${data.phone}">
+                <input id="swal-email" class="swal2-input" placeholder="E-Posta" value="${data.email}">
+                <input id="swal-address" class="swal2-input" placeholder="Adres" value="${data.address}">
+                <input id="swal-twitter" class="swal2-input" placeholder="Twitter" value="${data.twitter || ''}">
+                <input id="swal-linkedin" class="swal2-input" placeholder="LinkedIn" value="${data.linkedin || ''}">
+                <input id="swal-instagram" class="swal2-input" placeholder="Instagram" value="${data.instagram || ''}">
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Kaydet',
+            cancelButtonText: 'Vazgeç',
+            preConfirm: () => {
+                return {
+                    phone: document.getElementById('swal-phone').value,
+                    email: document.getElementById('swal-email').value,
+                    address: document.getElementById('swal-address').value,
+                    twitter: document.getElementById('swal-twitter').value,
+                    linkedin: document.getElementById('swal-linkedin').value,
+                    instagram: document.getElementById('swal-instagram').value
+                };
+            }
+        });
 
-        if (phone && email && address) {
+        if (formValues) {
             const formData = new FormData();
             formData.append('action', 'update_contact');
             formData.append('id', data.id);
-            formData.append('contact_phone', phone);
-            formData.append('contact_email', email);
-            formData.append('contact_address', address);
-            formData.append('contact_twitter', twitter);
-            formData.append('contact_linkedin', linkedin);
-            formData.append('contact_instagram', instagram);
+            formData.append('contact_phone', formValues.phone);
+            formData.append('contact_email', formValues.email);
+            formData.append('contact_address', formValues.address);
+            formData.append('contact_twitter', formValues.twitter);
+            formData.append('contact_linkedin', formValues.linkedin);
+            formData.append('contact_instagram', formValues.instagram);
 
             fetch('admin.php', { method: 'POST', body: formData })
                 .then(response => response.json())
                 .then(result => {
-                    const contactMsg = document.getElementById('contactMessage');
-                    if (result.status === 'success') {
-                        contactMsg.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
-                        loadContacts();
-                    } else {
-                        contactMsg.innerHTML = `<div class="alert alert-danger">Hata: ${result.message}</div>`;
-                    }
+                    Swal.fire({
+                        icon: result.status,
+                        title: result.status === 'success' ? 'Başarılı' : 'Hata',
+                        text: result.message
+                    });
+                    loadContacts();
                 })
                 .catch(error => console.error('Hata:', error));
         }
@@ -1517,12 +1545,9 @@ if (!isset($_SESSION['admin'])) {
             });
     }
 
-    // DOMContentLoaded => Form gönderme ve ilk yükleme
     document.addEventListener('DOMContentLoaded', function () {
         const contactForm = document.getElementById('contactForm');
-        const contactMsg = document.getElementById('contactMessage');
-
-        loadContacts(); // İlk yüklemede
+        loadContacts();
 
         contactForm.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -1535,7 +1560,11 @@ if (!isset($_SESSION['admin'])) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    contactMsg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    Swal.fire({
+                        icon: data.status,
+                        title: data.status === 'success' ? 'Başarılı' : 'Hata',
+                        text: data.message
+                    });
                     if (data.status === 'success') contactForm.reset();
                     loadContacts();
                 });
