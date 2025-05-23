@@ -260,7 +260,7 @@ $gal      = getLastRow($pdo, 'gallery');
     </section>
 
     <!-- Blog -->
-    <section id="blog" class="section"style=" margin: -350px auto ; ">
+    <section id="blog" class="section"style=" margin: -380px auto ; ">
         <h2 class="text-center section-title mb-5">✍️ Blog</h2>
 
         <div class="row g-4"style="margin-bottom: 90px !important;" >
