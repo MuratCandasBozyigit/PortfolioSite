@@ -72,7 +72,7 @@ $gal      = getLastRow($pdo, 'gallery');
         }
 
         .navbar {
-            background-color: rgba(31, 41, 55, 0.9); /* Semi-transparent background */
+            background-color: rgba(31, 41, 55, 0.9);
             backdrop-filter: blur(10px); /* Blur effect on the background */
         }
 
@@ -91,7 +91,8 @@ $gal      = getLastRow($pdo, 'gallery');
         }
 
         .hero {
-            height: 80vh;
+            height: 100vh;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -107,8 +108,8 @@ $gal      = getLastRow($pdo, 'gallery');
 
         /* Section styles */
         .section {
-            padding: 30px 0;
-            margin: 20px 0;
+            padding: 10px 0;
+            margin: 10px 0;
             opacity: 0;
             transition: opacity 0.5s ease, transform 0.5s ease;
             transform: translateY(30px);
@@ -128,11 +129,11 @@ $gal      = getLastRow($pdo, 'gallery');
         .card {
             background-color: #2A2E35;
             border: none;
-            margin: 20px auto; /* Alt ve üst margin */
+            margin: 10px auto; /* Alt ve üst margin */
             border-radius: 12px;
             color: #D1FAE5;
             transition: transform 0.3s, box-shadow 0.3s;
-            max-width: 650px; /* Kutular için maksimum genişlik */
+            max-width: 750px; /* Kutular için maksimum genişlik */
             padding: 20px; /* İçerik alanı */
             text-align: center; /* Center align for content */
         }
@@ -169,7 +170,7 @@ $gal      = getLastRow($pdo, 'gallery');
             -webkit-background-clip: text;
             margin-top:190px !important;
             -webkit-text-fill-color: transparent;
-            font-size: 2rem;
+            font-size: 1.5rem;
             text-align: center;
         }
 
@@ -214,7 +215,6 @@ $gal      = getLastRow($pdo, 'gallery');
         <div class="card p-4">
             <p><?= nl2br(htmlspecialchars($whoami['whoamiContent'] ?? 'Henüz metin eklenmedi.')) ?></p>
         </div>
-        <div class="arrow" id="arrow-whoami">⬇️</div>
     </section>
 
     <!-- Hakkımda -->
@@ -342,14 +342,7 @@ $gal      = getLastRow($pdo, 'gallery');
             // Scroll to target section
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            // Ok simgesini göster
-            const arrow = target.querySelector('.arrow');
-            arrow.classList.add('visible');
 
-            // Ok simgesini 2 saniye sonra gizle
-            setTimeout(() => {
-                arrow.classList.remove('visible');
-            }, 2000);
         });
     });
 </script>
