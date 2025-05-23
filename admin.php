@@ -772,13 +772,14 @@ if (!isset($_SESSION['admin'])) {
         $stmt->execute([$user]);
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($admin && password_verify($pass, $admin['password'])) {
+        if ($admin && $pass === $admin['password']) {
             $_SESSION['admin'] = $admin['username'];
             header("Location: admin.php");
             exit;
         } else {
             $error = "Hatalı kullanıcı adı veya şifre!";
         }
+
     }
     ?>
 
@@ -819,7 +820,6 @@ if (!isset($_SESSION['admin'])) {
     </div>
     </body>
     </html>
-
     <?php
     exit;
 }
@@ -1230,18 +1230,32 @@ if (!isset($_SESSION['admin'])) {
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('whoamiForm');
         const textarea = document.getElementById('whoami_textarea');
-        const msg = document.getElementById('whoamiMessage');
         const list = document.getElementById('whoamiList');
 
+        // SweetAlert2 ayarları
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        // Liste yükleme
         function loadWhoamiList() {
             fetch('admin.php?action=get_whoami')
                 .then(res => res.json())
                 .then(data => {
-                    list.innerHTML = ''; // Önce temizle
+                    list.innerHTML = '';
                     if (data.status === 'success') {
                         data.data.forEach(item => {
                             const li = document.createElement('li');
                             li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            li.dataset.id = item.id;
 
                             const contentDiv = document.createElement('div');
                             contentDiv.textContent = item.whoamiContent;
@@ -1249,24 +1263,17 @@ if (!isset($_SESSION['admin'])) {
                             const buttonGroup = document.createElement('div');
                             buttonGroup.className = 'btn-group btn-group-sm';
 
+                            // Güncelle butonu
                             const updateBtn = document.createElement('button');
-                            updateBtn.textContent = 'Güncelle';
-                            updateBtn.className = 'btn btn-warning';
-                            updateBtn.onclick = function () {
-                                const newContent = prompt('Yeni içerik:', item.whoamiContent);
-                                if (newContent !== null && newContent.trim() !== '') {
-                                    updateWhoami(item.id, newContent);
-                                }
-                            };
+                            updateBtn.innerHTML = '<i class="fas fa-edit"></i> Güncelle';
+                            updateBtn.className = 'btn btn-warning me-1';
+                            updateBtn.onclick = () => showUpdateModal(item.id, item.whoamiContent);
 
+                            // Sil butonu
                             const deleteBtn = document.createElement('button');
-                            deleteBtn.textContent = 'Sil';
+                            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Sil';
                             deleteBtn.className = 'btn btn-danger';
-                            deleteBtn.onclick = function () {
-                                if (confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
-                                    deleteWhoami(item.id);
-                                }
-                            };
+                            deleteBtn.onclick = () => confirmDelete(item.id);
 
                             buttonGroup.appendChild(updateBtn);
                             buttonGroup.appendChild(deleteBtn);
@@ -1284,72 +1291,153 @@ if (!isset($_SESSION['admin'])) {
                     }
                 })
                 .catch(err => {
-                    console.error('Veri çekme hatası:', err);
-                    list.innerHTML = '<li class="list-group-item text-danger">Liste yüklenemedi.</li>';
+                    console.error('Hata:', err);
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Liste yüklenemedi'
+                    });
                 });
         }
 
+        // Güncelleme modalı
+        function showUpdateModal(id, currentContent) {
+            Swal.fire({
+                title: 'İçerik Güncelle',
+                input: 'textarea',
+                inputValue: currentContent,
+                inputAttributes: {
+                    required: true
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: (content) => {
+                    if (!content.trim()) {
+                        Swal.showValidationMessage('İçerik boş olamaz');
+                        return false;
+                    }
+                    return updateWhoami(id, content);
+                }
+            });
+        }
+
+        // Güncelleme fonksiyonu
         function updateWhoami(id, content) {
-            const formData = new FormData();
-            formData.append('action', 'update_whoami');
-            formData.append('id', id);
-            formData.append('content', content);
-
-            fetch('admin.php', {
+            return fetch('admin.php', {
                 method: 'POST',
-                body: formData
+                body: new URLSearchParams({
+                    action: 'update_whoami',
+                    id: id,
+                    content: content
+                })
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
-                    loadWhoamiList();
+                    if (data.status === 'success') {
+                        Toast.fire({
+                            icon: 'success',
+                            title: data.message
+                        });
+                        loadWhoamiList();
+                    } else {
+                        Swal.fire('Hata!', data.message, 'error');
+                    }
+                    return data;
                 });
         }
 
+        // Silme onayı
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu kayıt silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteWhoami(id);
+                }
+            });
+        }
+
+        // Silme fonksiyonu
         function deleteWhoami(id) {
-            const formData = new FormData();
-            formData.append('action', 'delete_whoami');
-            formData.append('id', id);
-
             fetch('admin.php', {
                 method: 'POST',
-                body: formData
+                body: new URLSearchParams({
+                    action: 'delete_whoami',
+                    id: id
+                })
             })
                 .then(res => res.json())
                 .then(data => {
-                    msg.innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
-                    loadWhoamiList();
+                    if (data.status === 'success') {
+                        Toast.fire({
+                            icon: 'success',
+                            title: data.message
+                        });
+                        loadWhoamiList();
+                    } else {
+                        Swal.fire('Hata!', data.message, 'error');
+                    }
                 });
         }
 
-        // Sayfa yüklenince veriyi çek
-        loadWhoamiList();
-
-        // Form gönderildiğinde
+        // Form gönderimi
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(form);
             formData.append('action', 'save_whoami');
 
+            Swal.fire({
+                title: 'Kaydediliyor...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
             fetch('admin.php', {
                 method: 'POST',
                 body: formData
             })
                 .then(res => res.json())
                 .then(data => {
+                    Swal.close();
                     if (data.status === 'success') {
-                        msg.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                        Toast.fire({
+                            icon: 'success',
+                            title: data.message
+                        });
                         form.reset();
-                        loadWhoamiList(); // Listeyi güncelle
+                        loadWhoamiList();
                     } else {
-                        msg.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                        Swal.fire('Hata!', data.message, 'error');
                     }
                 })
                 .catch(err => {
-                    console.error('Kayıt hatası:', err);
-                    msg.innerHTML = `<div class="alert alert-danger">Bir hata oluştu.</div>`;
+                    Swal.fire('Hata!', 'Bir sorun oluştu', 'error');
+                    console.error('Hata:', err);
                 });
         });
+
+        // Font Awesome ekle
+        const faLink = document.createElement('link');
+        faLink.rel = 'stylesheet';
+        faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+        document.head.appendChild(faLink);
+
+        // SweetAlert2 ekle (eğer yoksa)
+        if (typeof Swal === 'undefined') {
+            const swalScript = document.createElement('script');
+            swalScript.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+            document.head.appendChild(swalScript);
+        }
+
+        // İlk yükleme
+        loadWhoamiList();
     });
 </script>
 <!--İLETİŞİM SCRİPT-->
