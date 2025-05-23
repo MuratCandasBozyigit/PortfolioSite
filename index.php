@@ -128,6 +128,7 @@ $gal      = getLastRow($pdo, 'gallery');
         .card {
             background-color: #2A2E35;
             border: none;
+            margin-bottom: 50px !important;
             border-radius: 12px;
             color: #D1FAE5;
             transition: transform 0.3s, box-shadow 0.3s;
@@ -148,6 +149,7 @@ $gal      = getLastRow($pdo, 'gallery');
             background-color: #1F2937;
             color: snow;
             padding: 20px;
+            margin-top: 30px;
             text-align: center;
             margin-top: auto; /* Footer'ı en aşağıda tutar */
             z-index: 10; /* On top of sections */
@@ -169,17 +171,6 @@ $gal      = getLastRow($pdo, 'gallery');
             text-align: center; /* Başlıkları merkezleme */
         }
 
-        /* Ok simgesi için stil */
-        .arrow {
-            margin-top: 10px;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            text-align: center;
-        }
-
-        .arrow.visible {
-            opacity: 1;
-        }
     </style>
 </head>
 <body>
@@ -216,12 +207,11 @@ $gal      = getLastRow($pdo, 'gallery');
 <div class="container main-content">
 
     <!-- Whoami -->
-    <section id="whoami" class="section">
+    <section id="whoami" class="section ">
         <h2 class="text-center section-title mb-4">👋 Ben Kimim</h2>
         <div class="card p-4">
             <p><?= nl2br(htmlspecialchars($whoami['whoamiContent'] ?? 'Henüz metin eklenmedi.')) ?></p>
         </div>
-        <div class="arrow" id="arrow-whoami">⬇️</div>
     </section>
 
     <!-- Hakkımda -->
