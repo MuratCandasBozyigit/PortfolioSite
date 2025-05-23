@@ -199,6 +199,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
                 <li class="nav-item"><a class="nav-link" href="#gallery">Galeri</a></li>
                 <li class="nav-item"><a class="nav-link" href="#contact">İletişim</a></li>
+                <li class="nav-item"><a class="nav-link" href="#sss">SSS</a></li>
             </ul>
         </div>
     </div>
@@ -303,16 +304,29 @@ $gal      = getLastRow($pdo, 'gallery');
     <section id="gallery" class="section">
         <h2 class="text-center section-title mb-5">🖼️ Galeri</h2>
         <div class="row g-4">
-            <div class="col-md-12 text-center">
-                <div class="card p-3">
-                    <h5><?= htmlspecialchars($gal['title'] ?? '') ?> (<?= htmlspecialchars($gal['type'] ?? '') ?>)</h5>
-                    <?php if (!empty($gal['image_url'])): ?>
-                        <img src="<?= htmlspecialchars($gal['image_url']) ?>" class="gallery-img mt-3" alt="Galeri">
-                    <?php endif; ?>
-                </div>
-            </div>
+            <?php
+            $galleryPath = __DIR__ . '/uploads/gallery/';
+            $galleryUrl  = 'uploads/gallery/';
+            $images = glob($galleryPath . '*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
+
+            if ($images) {
+                foreach ($images as $imagePath) {
+                    $imageUrl = $galleryUrl . basename($imagePath);
+                    ?>
+                    <div class="col-md-4">
+                        <div class="card p-2 h-100 text-center">
+                            <img src="<?= htmlspecialchars($imageUrl) ?>" alt="Galeri Görseli" class="img-fluid rounded">
+                        </div>
+                    </div>
+                    <?php
+                }
+            } else {
+                echo '<div class="col-md-12 text-center"><p>Galeriye henüz görsel eklenmedi.</p></div>';
+            }
+            ?>
         </div>
     </section>
+
 
     <!-- İletişim -->
     <section id="contact" class="section">
