@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Veritabanı bağlantı bilgileri
 $host = '217.195.207.215';
 $port = '3306';
 $dbname = 'dunyani1_Portfolio';
@@ -15,9 +14,7 @@ try {
 } catch (PDOException $e) {
     die("Veritabanı bağlantısı başarısız: " . $e->getMessage());
 }
-
-
-// WHOAMI KAYDET
+// WHOAMI CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_whoami') {
     $content = trim($_POST['whoami_text']);
     if (!empty($content)) {
@@ -29,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// WHOAMI GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_whoami') {
     header('Content-Type: application/json');
     $stmt = $pdo->query("SELECT id, whoamiContent FROM whoami ORDER BY id DESC");
@@ -42,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     exit;
 }
-// WHOAMI GÜNCELLE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_whoami') {
     $id = (int) $_POST['id'];
     $content = trim($_POST['content']);
@@ -56,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// WHOAMI SİL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_whoami') {
     $id = (int) $_POST['id'];
 
@@ -70,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// İLETİŞİM BİLGİLERİ KAYDET
+// İLETİŞİM BİLGİLERİ CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_contact') {
     $phone = trim($_POST['contact_phone']);
     $email = trim($_POST['contact_email']);
@@ -88,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// İLETİŞİM BİLGİLERİ GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_contact') {
     header('Content-Type: application/json');
     $stmt = $pdo->query("SELECT * FROM contact ORDER BY id DESC");
@@ -96,7 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     echo json_encode(['status' => 'success', 'data' => $results]);
     exit;
 }
-// İLETİŞİM BİLGİSİ GÜNCELLE (DÜZELTİLMİŞ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_contact') {
     header('Content-Type: application/json');
     try {
@@ -120,7 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// İLETİŞİM BİLGİSİ SİL (DÜZELTİLMİŞ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_contact') {
     header('Content-Type: application/json');
     try {
@@ -138,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// BIOGRAPHY KAYDET
+// BIOGRAPHY CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_biography') {
     $content = trim($_POST['content']);
     if (!empty($content)) {
@@ -150,7 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// BIOGRAPHY GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_biography') {
     header('Content-Type: application/json');
     $stmt = $pdo->query("SELECT id, content FROM biography ORDER BY id DESC");
@@ -163,7 +153,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     exit;
 }
-// BIOGRAPHY GÜNCELLE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_biography') {
     $id = (int) $_POST['id'];
     $content = trim($_POST['content']);
@@ -177,7 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// BIOGRAPHY SİL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_biography') {
     $id = (int) $_POST['id'];
 
@@ -191,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// İlgi Alanlarım - KAYDET
+// İlgi Alanlarım CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_interests') {
     $content = trim($_POST['interests_text']);
     if (!empty($content)) {
@@ -203,7 +191,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// İlgi Alanlarım - GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_interests') {
     header('Content-Type: application/json');
     $stmt = $pdo->query("SELECT id, content FROM interests ORDER BY id DESC");
@@ -215,7 +202,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     ]);
     exit;
 }
-// İlgi Alanlarım - GÜNCELLE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_interests') {
     $id = (int) $_POST['id'];
     $content = trim($_POST['content']);
@@ -229,7 +215,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// İlgi Alanlarım - SİL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_interests') {
     $id = (int) $_POST['id'];
 
@@ -243,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// Eğitim ve Deneyim - EKLE
+// Eğitim ve Deneyim CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_education') {
     $title = trim($_POST['edu_title']);
     $institution = trim($_POST['edu_institution']);
@@ -266,7 +251,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// Eğitim ve Deneyim - GETİR
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_education') {
     header('Content-Type: application/json');
     $stmt = $pdo->query("SELECT * FROM education_experience ORDER BY start_date DESC");
@@ -274,7 +258,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     echo json_encode(['status' => $results ? 'success' : 'empty', 'data' => $results]);
     exit;
 }
-// Eğitim ve Deneyim - GÜNCELLE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_education')  {
     $id = (int) $_POST['id'];
     $title = trim($_POST['title']);
@@ -299,7 +282,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     exit;
 }
-// Eğitim ve Deneyim - SİL
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_education') {
     $id = (int) $_POST['id'];
     if ($id) {
@@ -475,7 +457,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         exit;
     }
 }
-// SEYAHAT NOTLARI SİLME
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_travel_note' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
@@ -488,9 +469,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     exit;
 }
 
-
-
-
 // KITAP & FILM ÖNERİLERİ CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
     // LİSTELEME
@@ -501,7 +479,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
         exit;
     }
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     // EKLEME
     if ($_GET['action'] === 'save_book_film_recommendation') {
@@ -541,8 +518,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         exit;
     }
 }
-
-// SİLME
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_book_film_recommendation' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
@@ -555,7 +530,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     exit;
 }
 
+// TEKNOLOJI İLGİ ALANLARI CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    // LİSTELEME
+    if ($_GET['action'] === 'get_tech_interests') {
+        $stmt = $pdo->query("SELECT * FROM tech_interests ORDER BY created_at DESC");
+        $interests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['status' => 'success', 'interests' => $interests]);
+        exit;
+    }
+}
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+    // EKLEME
+    if ($_GET['action'] === 'save_tech_interest') {
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        if (empty($title) || empty($content)) {
+            echo json_encode(['status' => 'error', 'message' => 'Başlık ve içerik zorunludur!']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO tech_interests (title, content) VALUES (?, ?)");
+            $stmt->execute([$title, $content]);
+            echo json_encode(['status' => 'success', 'message' => 'İlgi alanı kaydedildi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Veritabanı hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+
+    // GÜNCELLEME
+    if ($_GET['action'] === 'update_tech_interest') {
+        $id = (int)$_POST['id'];
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        try {
+            $stmt = $pdo->prepare("UPDATE tech_interests SET title=?, content=? WHERE id=?");
+            $stmt->execute([$title, $content, $id]);
+            echo json_encode(['status' => 'success', 'message' => 'İlgi alanı güncellendi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Güncelleme hatası: '.$e->getMessage()]);
+        }
+        exit;
+    }
+}
+
+// SİLME
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_tech_interest' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM tech_interests WHERE id=?");
+        $stmt->execute([$id]);
+        echo json_encode(['status' => 'success', 'message' => 'İlgi alanı silindi!']);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Silme hatası: '.$e->getMessage()]);
+    }
+    exit;
+}
 
 
 function initializeDatabase($pdo) {
@@ -992,15 +1027,20 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="techCollapse" class="accordion-collapse collapse" data-bs-parent="#blogAccordion">
                             <div class="accordion-body">
-                                <form method="post">
+                                <form id="techInterestForm">
                                     <div class="mb-2">
-                                        <input type="text" name="tech_title" class="form-control" placeholder="Başlık" required>
+                                        <input type="text" name="title" class="form-control" placeholder="Başlık (Örnek: Yapay Zeka)" required>
                                     </div>
                                     <div class="mb-2">
-                                        <textarea name="tech_content" class="form-control" rows="4" placeholder="İçerik" required></textarea>
+                                        <textarea name="content" class="form-control" rows="4" placeholder="İçerik (Örnek: Makine öğrenmesi ve derin öğrenme alanlarındaki gelişmeler...)" required></textarea>
                                     </div>
-                                    <button type="submit" name="save_tech" class="btn btn-success">Kaydet</button>
+                                    <button type="submit" class="btn btn-success">Kaydet</button>
                                 </form>
+
+                                <div class="mt-4">
+                                    <h5>Kayıtlı İlgi Alanları</h5>
+                                    <ul id="techInterestsList" class="list-group"></ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2187,8 +2227,7 @@ if (!isset($_SESSION['admin'])) {
         fetchTravelNotes();
     });
 </script>
-
-
+<!-- Kitap & Film Önerileri -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('bookFilmForm');
@@ -2364,7 +2403,172 @@ if (!isset($_SESSION['admin'])) {
         fetchBookFilmRecommendations();
     });
 </script>
+<!-- Teknoloji & İlgi Alanları -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('techInterestForm');
+        const list = document.getElementById('techInterestsList');
 
+        // FORM GÖNDERME
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            Swal.fire({
+                title: 'Kaydediliyor...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('admin.php?action=save_tech_interest', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: data.message,
+                            confirmButtonColor: '#3085d6'
+                        });
+                        form.reset();
+                        fetchTechInterests();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: data.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                });
+        });
+
+        // LİSTELEME
+        function fetchTechInterests() {
+            fetch('admin.php?action=get_tech_interests')
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.status === 'success') {
+                        data.interests.forEach(interest => {
+                            list.innerHTML += `
+                    <li class="list-group-item" data-id="${interest.id}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">${escapeHtml(interest.title)}</h5>
+                                <p class="mb-0">${escapeHtml(interest.content.substring(0, 100))}...</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 update-btn">Güncelle</button>
+                                <button class="btn btn-sm btn-danger delete-btn">Sil</button>
+                            </div>
+                        </div>
+                    </li>`;
+                        });
+
+                        // Event listeners
+                        document.querySelectorAll('.delete-btn').forEach(btn => {
+                            btn.addEventListener('click', deleteTechInterest);
+                        });
+                        document.querySelectorAll('.update-btn').forEach(btn => {
+                            btn.addEventListener('click', updateTechInterestUI);
+                        });
+                    }
+                });
+        }
+
+        // SİLME
+        function deleteTechInterest(e) {
+            const id = e.target.closest('li').dataset.id;
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu kayıt kalıcı olarak silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`admin.php?action=delete_tech_interest&id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire('Silindi!', data.message, 'success');
+                                fetchTechInterests();
+                            }
+                        });
+                }
+            });
+        }
+
+        // GÜNCELLEME ARAYÜZÜ
+        function updateTechInterestUI(e) {
+            const li = e.target.closest('li');
+            const id = li.dataset.id;
+            const title = li.querySelector('h5').textContent;
+            const content = li.querySelector('p').textContent + '...';
+
+            Swal.fire({
+                title: 'İlgi Alanını Güncelle',
+                html: `
+                <input id="swal-title" class="swal2-input" value="${escapeHtml(title)}" required>
+                <textarea id="swal-content" class="swal2-textarea" required>${escapeHtml(content)}</textarea>
+            `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'İptal',
+                preConfirm: () => {
+                    return {
+                        title: document.getElementById('swal-title').value,
+                        content: document.getElementById('swal-content').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateTechInterest(id, result.value.title, result.value.content);
+                }
+            });
+        }
+
+        // GÜNCELLEME AJAX
+        function updateTechInterest(id, title, content) {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('title', title);
+            formData.append('content', content);
+
+            fetch('admin.php?action=update_tech_interest', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Başarılı!', data.message, 'success');
+                        fetchTechInterests();
+                    } else {
+                        Swal.fire('Hata!', data.message, 'error');
+                    }
+                });
+        }
+
+        // HTML Escape
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/[&<"'>]/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];
+            });
+        }
+
+        // İlk yükleme
+        fetchTechInterests();
+    });
+</script>
 
 </body>
 </html>
