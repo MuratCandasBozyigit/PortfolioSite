@@ -1203,7 +1203,7 @@ if (!isset($_SESSION['admin'])) {
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#photoCollapse">
-                                📷 Fotoğraflarım
+                                📷 Fotoğraflarım | 🧩 Hobilerim ile İlgili Görseller |    🎥 Video & Multimedya
                             </button>
                         </h2>
                         <div id="photoCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
@@ -1218,10 +1218,10 @@ if (!isset($_SESSION['admin'])) {
                     </div>
 
                     <!-- Hobilerim ile İlgili Görseller -->
-                    <div class="accordion-item">
+            <!--      <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hobbyImgCollapse">
-                                🧩 Hobilerim ile İlgili Görseller
+
                             </button>
                         </h2>
                         <div id="hobbyImgCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
@@ -1236,22 +1236,22 @@ if (!isset($_SESSION['admin'])) {
                     </div>
 
                     <!-- Video & Multimedya -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#videoCollapse">
-                                🎥 Video & Multimedya
-                            </button>
-                        </h2>
-                        <div id="videoCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
-                            <div class="accordion-body">
-                                <form id="videoForm" enctype="multipart/form-data">
-                                    <input type="file" name="videos[]" class="form-control mb-2" multiple required>
-                                    <button type="submit" class="btn btn-success">Yükle</button>
-                                </form>
-                                <div class="mt-3" id="videosGallery"></div>
-                            </div>
-                        </div>
-                    </div>
+                    <!--   <div class="accordion-item">
+                         <h2 class="accordion-header">
+                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#videoCollapse">
+
+                             </button>
+                         </h2>
+                         <div id="videoCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
+                             <div class="accordion-body">
+                                 <form id="videoForm" enctype="multipart/form-data">
+                                     <input type="file" name="videos[]" class="form-control mb-2" multiple required>
+                                     <button type="submit" class="btn btn-success">Yükle</button>
+                                 </form>
+                                 <div class="mt-3" id="videosGallery"></div>
+                             </div>
+                         </div>
+                     </div>-->
 
                 </div>
             </div>
@@ -1430,7 +1430,6 @@ if (!isset($_SESSION['admin'])) {
         loadWhoamiList();
     });
 </script>
-
 <!--İLETİŞİM SCRİPT-->
 <script>
     async function deleteContact(id) {
@@ -2895,6 +2894,7 @@ if (!isset($_SESSION['admin'])) {
     document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">');
 </script>
 <!--SSS-->
+<!-- SSS -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         fetchFaqs();
@@ -2911,31 +2911,56 @@ if (!isset($_SESSION['admin'])) {
                             const li = document.createElement("li");
                             li.className = "list-group-item d-flex justify-content-between align-items-start flex-wrap";
                             li.innerHTML = `
-                            <div>
-                                <strong>${faq.name}</strong> (${faq.email}, ${faq.phone})<br>
-                                <em>${faq.question}</em>
-                            </div>
-                            <button class="btn btn-sm btn-danger mt-2" onclick="deleteFaq(${faq.id})">Sil</button>
-                        `;
+                                <div>
+                                    <strong>${faq.name}</strong> (${faq.email}, ${faq.phone})<br>
+                                    <em>${faq.question}</em>
+                                </div>
+                                <button class="btn btn-sm btn-danger mt-2" onclick="deleteFaq(${faq.id})">Sil</button>
+                            `;
                             list.appendChild(li);
                         });
                     } else {
                         list.innerHTML = `<li class="list-group-item text-danger">${data.message}</li>`;
                     }
+                })
+                .catch(error => {
+                    console.error("SSS verileri çekilemedi:", error);
+                    Swal.fire('Hata!', 'SSS verileri yüklenemedi.', 'error');
                 });
         }
 
-        // Silme
+        // Silme (Swal.fire ile)
         window.deleteFaq = function (id) {
-            if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
-            fetch(`admin.php?action=delete_faq&id=${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("faqMessage").innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
-                    fetchFaqs();
-                });
+            Swal.fire({
+                title: 'Emin misin?',
+                text: "Bu soruyu silmek istediğine emin misin?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'Vazgeç'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`admin.php?action=delete_faq&id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            Swal.fire({
+                                icon: data.status === 'success' ? 'success' : 'error',
+                                title: data.status === 'success' ? 'Silindi!' : 'Hata!',
+                                text: data.message
+                            });
+                            fetchFaqs();
+                        })
+                        .catch(error => {
+                            console.error("Silme işlemi başarısız:", error);
+                            Swal.fire('Hata!', 'Silme sırasında bir sorun oluştu.', 'error');
+                        });
+                }
+            });
         };
     });
 </script>
+
 </body>
 </html>
