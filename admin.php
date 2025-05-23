@@ -540,7 +540,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
         exit;
     }
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     // EKLEME
     if ($_GET['action'] === 'save_tech_interest') {
@@ -578,8 +577,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         exit;
     }
 }
-
-// SİLME
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete_tech_interest' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
@@ -590,6 +587,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         echo json_encode(['status' => 'error', 'message' => 'Silme hatası: '.$e->getMessage()]);
     }
     exit;
+}
+
+
+
+// GALERİ CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'upload_gallery') {
+    $type = $_POST['type'];
+    $uploadedFiles = $_FILES[$type === 'videos' ? 'videos' : 'images'];
+    $uploadDir = 'uploads/gallery/';
+
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
+    $responses = [];
+
+    foreach ($uploadedFiles['tmp_name'] as $key => $tmpName) {
+        $fileName = uniqid() . '_' . basename($uploadedFiles['name'][$key]);
+        $targetPath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($tmpName, $targetPath)) {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO gallery (title, type, image_url) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    pathinfo($uploadedFiles['name'][$key], PATHINFO_FILENAME),
+                    $type,
+                    $targetPath
+                ]);
+                $responses[] = ['status' => 'success', 'file' => $fileName];
+            } catch (PDOException $e) {
+                $responses[] = ['status' => 'error', 'message' => $e->getMessage()];
+            }
+        } else {
+            $responses[] = ['status' => 'error', 'message' => 'Dosya yüklenemedi'];
+        }
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => count($responses) . ' dosyadan ' .
+            count(array_filter($responses, fn($r) => $r['status'] === 'success')) . ' tanesi başarıyla yüklendi'
+    ]);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    // GALERİ ÖĞELERİNİ GETİR
+    if ($_GET['action'] === 'get_gallery_items' && isset($_GET['type'])) {
+        $type = $_GET['type'];
+        $stmt = $pdo->prepare("SELECT * FROM gallery WHERE type = ? ORDER BY id DESC");
+        $stmt->execute([$type]);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['status' => 'success', 'items' => $items]);
+        exit;
+    }
+
+    // GALERİ ÖĞESİ SİLME
+    if ($_GET['action'] === 'delete_gallery_item' && isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+
+        try {
+            // Önce dosyayı bul
+            $stmt = $pdo->prepare("SELECT image_url FROM gallery WHERE id = ?");
+            $stmt->execute([$id]);
+            $item = $stmt->fetch();
+
+            if ($item) {
+                // Dosyayı sil
+                if (file_exists($item['image_url'])) {
+                    unlink($item['image_url']);
+                }
+
+                // Veritabanından sil
+                $stmt = $pdo->prepare("DELETE FROM gallery WHERE id = ?");
+                $stmt->execute([$id]);
+
+                echo json_encode(['status' => 'success', 'message' => 'Öğe silindi']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Öğe bulunamadı']);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Silme hatası: ' . $e->getMessage()]);
+        }
+        exit;
+    }
 }
 
 
@@ -673,6 +755,7 @@ function initializeDatabase($pdo) {
         "CREATE TABLE IF NOT EXISTS gallery (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(100),
+            type ENUM('photos', 'hobies', 'videos') NOT NULL,
             image_url TEXT
         )",
 
@@ -1092,10 +1175,11 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="photoCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
                             <div class="accordion-body">
-                                <form method="post" enctype="multipart/form-data">
-                                    <input type="file" name="gallery_photos[]" class="form-control mb-2" multiple required>
-                                    <button type="submit" name="save_photos" class="btn btn-success">Yükle</button>
+                                <form id="photoForm" enctype="multipart/form-data">
+                                    <input type="file" name="images[]" class="form-control mb-2" multiple required>
+                                    <button type="submit" class="btn btn-success">Yükle</button>
                                 </form>
+                                <div class="mt-3" id="photosGallery"></div>
                             </div>
                         </div>
                     </div>
@@ -1109,10 +1193,11 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="hobbyImgCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
                             <div class="accordion-body">
-                                <form method="post" enctype="multipart/form-data">
-                                    <input type="file" name="gallery_hobbies[]" class="form-control mb-2" multiple required>
-                                    <button type="submit" name="save_hobbies" class="btn btn-success">Yükle</button>
+                                <form id="hobbyForm" enctype="multipart/form-data">
+                                    <input type="file" name="images[]" class="form-control mb-2" multiple required>
+                                    <button type="submit" class="btn btn-success">Yükle</button>
                                 </form>
+                                <div class="mt-3" id="hobbiesGallery"></div>
                             </div>
                         </div>
                     </div>
@@ -1126,15 +1211,16 @@ if (!isset($_SESSION['admin'])) {
                         </h2>
                         <div id="videoCollapse" class="accordion-collapse collapse" data-bs-parent="#galleryAccordion">
                             <div class="accordion-body">
-                                <form method="post" enctype="multipart/form-data">
-                                    <input type="file" name="gallery_videos[]" class="form-control mb-2" multiple required>
-                                    <button type="submit" name="save_videos" class="btn btn-success">Yükle</button>
+                                <form id="videoForm" enctype="multipart/form-data">
+                                    <input type="file" name="videos[]" class="form-control mb-2" multiple required>
+                                    <button type="submit" class="btn btn-success">Yükle</button>
                                 </form>
+                                <div class="mt-3" id="videosGallery"></div>
                             </div>
                         </div>
                     </div>
 
-                </div> <!-- galleryAccordion -->
+                </div>
             </div>
         </div>
     </div>
@@ -2569,6 +2655,138 @@ if (!isset($_SESSION['admin'])) {
         fetchTechInterests();
     });
 </script>
+<!--GALERİ SCRİPT-->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fotoğraf Yükleme
+        const photoForm = document.getElementById('photoForm');
+        photoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            uploadMedia('photos', this);
+        });
 
+        // Hobi Görsel Yükleme
+        const hobbyForm = document.getElementById('hobbyForm');
+        hobbyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            uploadMedia('hobies', this);
+        });
+
+        // Video Yükleme
+        const videoForm = document.getElementById('videoForm');
+        videoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            uploadMedia('videos', this);
+        });
+
+        // Medya Yükleme Fonksiyonu
+        function uploadMedia(type, form) {
+            const formData = new FormData(form);
+            formData.append('type', type);
+
+            Swal.fire({
+                title: 'Yükleniyor...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('admin.php?action=upload_gallery', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: data.message,
+                            confirmButtonColor: '#3085d6'
+                        });
+                        form.reset();
+                        fetchGalleryItems(type);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata!',
+                            text: data.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                });
+        }
+
+        // Galeri Öğelerini Getir
+        function fetchGalleryItems(type) {
+            fetch(`admin.php?action=get_gallery_items&type=${type}`)
+                .then(res => res.json())
+                .then(data => {
+                    const galleryContainer = document.getElementById(`${type}Gallery`);
+                    galleryContainer.innerHTML = '';
+
+                    if (data.status === 'success' && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const mediaElement = item.type === 'videos' ?
+                                `<video controls class="img-thumbnail m-2" style="width:200px;height:200px;object-fit:cover;">
+                            <source src="${item.image_url}" type="video/mp4">
+                        </video>` :
+                                `<img src="${item.image_url}" class="img-thumbnail m-2" style="width:200px;height:200px;object-fit:cover;">`;
+
+                            galleryContainer.innerHTML += `
+                    <div class="d-inline-block position-relative">
+                        ${mediaElement}
+                        <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-media"
+                                data-id="${item.id}" data-type="${type}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`;
+                        });
+
+                        // Silme butonlarına event ekle
+                        document.querySelectorAll('.delete-media').forEach(btn => {
+                            btn.addEventListener('click', deleteMedia);
+                        });
+                    } else {
+                        galleryContainer.innerHTML = '<p class="text-muted">Henüz öğe eklenmemiş.</p>';
+                    }
+                });
+        }
+
+        // Medya Silme
+        function deleteMedia(e) {
+            const id = e.target.closest('button').dataset.id;
+            const type = e.target.closest('button').dataset.type;
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu öğe kalıcı olarak silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`admin.php?action=delete_gallery_item&id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire('Silindi!', data.message, 'success');
+                                fetchGalleryItems(type);
+                            }
+                        });
+                }
+            });
+        }
+
+        // Sayfa yüklendiğinde galerileri getir
+        fetchGalleryItems('photos');
+        fetchGalleryItems('hobies');
+        fetchGalleryItems('videos');
+    });
+
+    // Font Awesome ikonları için
+    document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">');
+</script>
 </body>
 </html>
