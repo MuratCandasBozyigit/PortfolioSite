@@ -695,7 +695,15 @@ function initializeDatabase($pdo) {
             linkedin VARCHAR(255),
             instagram VARCHAR(255)
         )",
-
+        //SSS
+        "CREATE TABLE IF NOT EXISTS faq (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(150) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            question TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )",
 
         // Hakkımda Tabloları
         "CREATE TABLE IF NOT EXISTS biography (

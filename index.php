@@ -21,6 +21,20 @@ try {
     die("Database connection error: " . $e->getMessage());
 }
 
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit_faq"])) {
+    $name = trim($_POST["name"]);
+    $email = trim($_POST["email"]);
+    $phone = trim($_POST["phone"]);
+    $question = trim($_POST["question"]);
+
+    if ($name && $email && $phone && $question) {
+        $stmt = $pdo->prepare("INSERT INTO faq (name, email, phone, question) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $email, $phone, $question]);
+        echo '<div class="alert alert-success">Sorunuz başarıyla gönderildi.</div>';
+    } else {
+        echo '<div class="alert alert-danger">Lütfen tüm alanları doldurun.</div>';
+    }
+}
 // 2) UTILITY: GET LAST ROW FROM TABLE
 function getLastRow(PDO $pdo, string $table) {
     $stmt = $pdo->query("SELECT * FROM `{$table}` ORDER BY id DESC LIMIT 1");
@@ -178,8 +192,9 @@ $gal      = getLastRow($pdo, 'gallery');
             text-align: center;
         }
 
-
-
+        #faq{
+            margin: -250px auto;
+        }
     </style>
 </head>
 <body>
@@ -199,7 +214,7 @@ $gal      = getLastRow($pdo, 'gallery');
                 <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
                 <li class="nav-item"><a class="nav-link" href="#gallery">Galeri</a></li>
                 <li class="nav-item"><a class="nav-link" href="#contact">İletişim</a></li>
-                <li class="nav-item"><a class="nav-link" href="#sss">SSS</a></li>
+                <li class="nav-item"><a class="nav-link" href="#faq">SSS</a></li>
             </ul>
         </div>
     </div>
@@ -327,7 +342,6 @@ $gal      = getLastRow($pdo, 'gallery');
         </div>
     </section>
 
-
     <!-- İletişim -->
     <section id="contact" class="section">
         <h2 class="text-center section-title mb-5">📬 İletişim</h2>
@@ -342,6 +356,41 @@ $gal      = getLastRow($pdo, 'gallery');
             </p>
         </div>
     </section>
+
+    <!-- SSS Formu -->
+    <section id="faq" class="section">
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="text-center section-title mb-5">❓ Soru Sor</h2>
+
+                <form method="POST" class="card p-4 shadow-sm">
+                    <div class="mb-3">
+                        <label class="form-label">Adınız Soyadınız</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">E-Posta</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Telefon</label>
+                        <input type="text" name="phone" class="form-control" pattern="0[0-9]{10}" title="Örnek: 05519486717" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sorunuz</label>
+                        <textarea name="question" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <button type="submit" name="submit_faq" class="btn btn-primary w-100">Gönder</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
 
 </div>
 
