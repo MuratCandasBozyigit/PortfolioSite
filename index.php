@@ -61,7 +61,7 @@ $gal      = getLastRow($pdo, 'gallery');
             background-size: 600% 600%; /* Allow for smooth gradient transitions */
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* Ensure body is at least full view height */
+            min-height: 120vh; /* Ensure body is at least full view height */
             margin: 0; /* Remove margin */
         }
 
@@ -91,7 +91,7 @@ $gal      = getLastRow($pdo, 'gallery');
         }
 
         .hero {
-            height: 100vh;
+            height: 40vh;
             font-size: 1.3rem;
             display: flex;
             align-items: center;
@@ -109,6 +109,7 @@ $gal      = getLastRow($pdo, 'gallery');
         /* Section styles */
         .section {
             padding: 10px 0;
+            margin-top:90px !important;
             margin: 10px 0;
             opacity: 0;
             transition: opacity 0.5s ease, transform 0.5s ease;
@@ -168,11 +169,12 @@ $gal      = getLastRow($pdo, 'gallery');
         .section-title {
             background: linear-gradient(90deg, #fff200, #23ff00); /* Colorful title */
             -webkit-background-clip: text;
-            margin-top:190px !important;
             -webkit-text-fill-color: transparent;
             font-size: 1.5rem;
             text-align: center;
         }
+
+
 
     </style>
 </head>
@@ -199,7 +201,7 @@ $gal      = getLastRow($pdo, 'gallery');
 </nav>
 
 <!-- Hero -->
-<section id="hero" class="hero">
+<section id="hero" class="hero" style="margin-bottom: 90px;">
     <div class="container text-white">
         <h1 class="display-4 fw-bold">Merhaba, ben Murat 👨‍💻</h1>
         <p class="lead">Web Developer &amp; Software Developer</p>
@@ -218,7 +220,7 @@ $gal      = getLastRow($pdo, 'gallery');
     </section>
 
     <!-- Hakkımda -->
-    <section id="about" class="section">
+    <section id="about" class="section" style=" margin: -90px auto ; " >
         <h2 class="text-center section-title mb-5">👨‍💼 Hakkımda</h2>
         <div class="row g-4 text-center">
             <div class="col-md-4">
