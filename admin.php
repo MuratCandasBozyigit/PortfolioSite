@@ -671,6 +671,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
     }
 }
 
+//SSS
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+
+    // SSS Listele
+    if ($_GET['action'] === 'get_faqs') {
+        try {
+            $stmt = $pdo->query("SELECT * FROM faq ORDER BY created_at DESC");
+            $faqs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['status' => 'success', 'faqs' => $faqs]);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Veriler alınamadı: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // SSS Sil
+    if ($_GET['action'] === 'delete_faq' && isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+        try {
+            $stmt = $pdo->prepare("DELETE FROM faq WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success', 'message' => 'Soru başarıyla silindi!']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Silme başarısız: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+}
 
 function initializeDatabase($pdo) {
     $queries = [
@@ -1229,6 +1257,22 @@ if (!isset($_SESSION['admin'])) {
             </div>
         </div>
     </div>
+
+    <!-- S.S.S (FAQ) -->
+    <div class="section-collapse">
+        <button class="btn btn-outline-primary animated-btn w-100 mb-2" data-bs-toggle="collapse" data-bs-target="#faqSection">
+            ❓ Sıkça Sorulan Sorular
+        </button>
+        <div class="collapse" id="faqSection">
+            <div class="card card-body">
+                <div id="faqMessage" class="mb-2"></div>
+                <h5>📋 Gönderilmiş Sorular</h5>
+                <ul id="faqList" class="list-group mt-2"></ul>
+            </div>
+        </div>
+    </div>
+
+
 
 </div> <!-- /container -->
 
@@ -2792,6 +2836,49 @@ if (!isset($_SESSION['admin'])) {
 
     // Font Awesome ikonları için
     document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">');
+</script>
+<!--SSS-->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchFaqs();
+
+        // Listeleme
+        function fetchFaqs() {
+            fetch('admin.php?action=get_faqs')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("faqList");
+                    list.innerHTML = "";
+                    if (data.status === "success") {
+                        data.faqs.forEach(faq => {
+                            const li = document.createElement("li");
+                            li.className = "list-group-item d-flex justify-content-between align-items-start flex-wrap";
+                            li.innerHTML = `
+                            <div>
+                                <strong>${faq.name}</strong> (${faq.email}, ${faq.phone})<br>
+                                <em>${faq.question}</em>
+                            </div>
+                            <button class="btn btn-sm btn-danger mt-2" onclick="deleteFaq(${faq.id})">Sil</button>
+                        `;
+                            list.appendChild(li);
+                        });
+                    } else {
+                        list.innerHTML = `<li class="list-group-item text-danger">${data.message}</li>`;
+                    }
+                });
+        }
+
+        // Silme
+        window.deleteFaq = function (id) {
+            if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
+            fetch(`admin.php?action=delete_faq&id=${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("faqMessage").innerHTML = `<div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">${data.message}</div>`;
+                    fetchFaqs();
+                });
+        };
+    });
 </script>
 </body>
 </html>
