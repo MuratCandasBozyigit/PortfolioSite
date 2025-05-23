@@ -810,13 +810,14 @@ if (!isset($_SESSION['admin'])) {
         $stmt->execute([$user]);
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($admin && password_verify($pass, $admin['password'])) {
+        if ($admin && $pass === $admin['password']) {
             $_SESSION['admin'] = $admin['username'];
             header("Location: admin.php");
             exit;
         } else {
             $error = "Hatalı kullanıcı adı veya şifre!";
         }
+
     }
     ?>
 
