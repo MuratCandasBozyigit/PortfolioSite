@@ -54,7 +54,7 @@ $gal      = getLastRow($pdo, 'gallery');
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            color: #E5E7EB; /* Light text */
+            color: snow; /* Light text */
             scroll-behavior: smooth;
             background: linear-gradient(240deg, #0065ff, #FF61A6, #ffa600);
             animation: gradient 25s ease infinite; /* Slow down animation duration */
@@ -115,10 +115,10 @@ $gal      = getLastRow($pdo, 'gallery');
             position: absolute; /* Section'ı mutlak konumda yapıyoruz */
             width: 100%; /* 100% genişlik */
             bottom: 0; /* Alt kısımda düzgün görünüm */
-            background-color: rgba(40, 44, 52, 0.9); /* Koyu arka plan */
             left: 0; /* Solda hizalama */
         }
 
+        /* Özelleştirilmiş genişlik ve merkezi hizalama */
         .section.visible {
             opacity: 1; /* Görünür yapılır */
             transform: translateY(0); /* Normal konumuna gelir */
@@ -131,8 +131,12 @@ $gal      = getLastRow($pdo, 'gallery');
             border-radius: 12px;
             color: #D1FAE5;
             transition: transform 0.3s, box-shadow 0.3s;
-            height: 100%;
-            max-width: 100%; /* Maksimum genişlik önlemeyi açık tutalım */
+            max-width: 600px; /* Kutular için maksimum genişlik */
+            margin: 0 auto; /* Merkezde konumlandırma */
+        }
+
+        .card h5 {
+            text-align: center; /* Başlıkları merkezleme */
         }
 
         .card:hover {
@@ -142,7 +146,7 @@ $gal      = getLastRow($pdo, 'gallery');
 
         footer {
             background-color: #1F2937;
-            color: #94A3B8;
+            color: snow;
             padding: 20px;
             text-align: center;
             margin-top: auto; /* Footer'ı en aşağıda tutar */
@@ -162,6 +166,7 @@ $gal      = getLastRow($pdo, 'gallery');
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-size: 2rem;
+            text-align: center; /* Başlıkları merkezleme */
         }
 
         /* Ok simgesi için stil */
