@@ -116,24 +116,25 @@ $gal      = getLastRow($pdo, 'gallery');
             width: 100%; /* 100% genişlik */
             bottom: 0; /* Alt kısımda düzgün görünüm */
             left: 0; /* Solda hizalama */
+            border-radius: 10px; /* Corner rounding */
         }
 
         /* Özelleştirilmiş genişlik ve merkezi hizalama */
         .section.visible {
             opacity: 1; /* Görünür yapılır */
             transform: translateY(0); /* Normal konumuna gelir */
-            z-index: 1; /* Üst kısımda görünür */
         }
 
         .card {
             background-color: #2A2E35;
             border: none;
-            margin-bottom: 50px !important;
+            margin: 20px auto; /* Alt ve üst margin */
             border-radius: 12px;
             color: #D1FAE5;
             transition: transform 0.3s, box-shadow 0.3s;
-            max-width: 600px; /* Kutular için maksimum genişlik */
-            margin: 0 auto; /* Merkezde konumlandırma */
+            max-width: 650px; /* Kutular için maksimum genişlik */
+            padding: 20px; /* İçerik alanı */
+            text-align: center; /* Center align for content */
         }
 
         .card h5 {
@@ -166,9 +167,10 @@ $gal      = getLastRow($pdo, 'gallery');
         .section-title {
             background: linear-gradient(90deg, #fff200, #23ff00); /* Colorful title */
             -webkit-background-clip: text;
+            margin-top:190px !important;
             -webkit-text-fill-color: transparent;
             font-size: 2rem;
-            text-align: center; /* Başlıkları merkezleme */
+            text-align: center;
         }
 
     </style>
@@ -207,11 +209,12 @@ $gal      = getLastRow($pdo, 'gallery');
 <div class="container main-content">
 
     <!-- Whoami -->
-    <section id="whoami" class="section ">
+    <section id="whoami" class="section">
         <h2 class="text-center section-title mb-4">👋 Ben Kimim</h2>
         <div class="card p-4">
             <p><?= nl2br(htmlspecialchars($whoami['whoamiContent'] ?? 'Henüz metin eklenmedi.')) ?></p>
         </div>
+        <div class="arrow" id="arrow-whoami">⬇️</div>
     </section>
 
     <!-- Hakkımda -->
