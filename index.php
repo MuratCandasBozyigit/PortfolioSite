@@ -223,27 +223,37 @@ $gal      = getLastRow($pdo, 'gallery');
     </section>
 
     <!-- Hakkımda -->
-    <section id="about" class="section" style=" margin: -90px auto ; " >
+    <section id="about" class="section" style=" margin: -150px auto ; " >
         <h2 class="text-center section-title mb-5">👨‍💼 Hakkımda</h2>
         <div class="row g-4 text-center">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card p-3">
                     <h5>Biyografi</h5>
                     <p><?= nl2br(htmlspecialchars($bio['content'] ?? '')) ?></p>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card p-3">
                     <h5>İlgi Alanlarım</h5>
                     <p><?= nl2br(htmlspecialchars($intrests['content'] ?? '')) ?></p>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card p-3">
                     <h5>Eğitim &amp; Deneyim</h5>
                     <p><strong><?= htmlspecialchars($edu['title'] ?? '') ?></strong> @ <?= htmlspecialchars($edu['institution'] ?? '') ?></p>
                     <p><?= nl2br(htmlspecialchars($edu['description'] ?? '')) ?></p>
                     <small class="text-muted"><?= htmlspecialchars($edu['start_date'] ?? '') ?> → <?= htmlspecialchars($edu['end_date'] ?? '') ?></small>
+
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <h5>Başarılar &amp; Sertifikalar</h5>
+                    <p><strong><?= htmlspecialchars($ach['title'] ?? '') ?></strong> @ <?= htmlspecialchars($edu['institution'] ?? '') ?></p>
+                    <p><?= nl2br(htmlspecialchars($ach['issuer'] ?? '')) ?></p>
+                    <small class="text-muted"><?= htmlspecialchars($ach['date'] ?? '') ?> → <?= htmlspecialchars($edu['end_date'] ?? '') ?></small>
+                    <p><?= nl2br(htmlspecialchars($ach['description'] ?? '')) ?></p>
                 </div>
             </div>
         </div>
