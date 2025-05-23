@@ -56,8 +56,8 @@ $gal      = getLastRow($pdo, 'gallery');
             font-family: 'Inter', sans-serif;
             color: #E5E7EB; /* Light text */
             scroll-behavior: smooth;
-            background: linear-gradient(240deg, #10B981, #FF61A6, #FFEA5A);
-            animation: gradient 30s ease infinite; /* Slow down animation duration */
+            background: linear-gradient(240deg, #0065ff, #FF61A6, #ffa600);
+            animation: gradient 25s ease infinite; /* Slow down animation duration */
             background-size: 600% 600%; /* Allow for smooth gradient transitions */
             display: flex;
             flex-direction: column;
@@ -104,19 +104,17 @@ $gal      = getLastRow($pdo, 'gallery');
         h1, h2 { font-family: 'Fira Code', monospace; }
 
         .section {
-            padding: 30px 0; /* Üst padding azaltıldı */
-            margin-top: 20px; /* Üstten gelen boşluk azaltıldı */
-            opacity: 0; /* Start invisible */
-            transition: opacity 0.5s ease, transform 0.5s ease; /* Smooth transition */
-            transform: translateY(30px); /* Slide in from below */
-            display: none; /* Start hidden */
-            position: relative; /* Maintain flow in layout */
+            padding: 30px 0;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: translateY(30px);
+            position: relative;
         }
 
         .section.visible {
-            opacity: 1; /* Make visible */
-            transform: translateY(0); /* Target position */
-            display: block; /* Display as block */
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .card {
@@ -151,7 +149,7 @@ $gal      = getLastRow($pdo, 'gallery');
         }
 
         .section-title {
-            background: linear-gradient(90deg, #FF61A6, #FFEA5A); /* Colorful title */
+            background: linear-gradient(90deg, #fff200, #23ff00); /* Colorful title */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-size: 2rem;
@@ -301,32 +299,42 @@ $gal      = getLastRow($pdo, 'gallery');
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Adding smooth sliding transition with the slide effect
     const sections = document.querySelectorAll('.section');
     const links = document.querySelectorAll('.nav-link');
+
+    // Sayfa yüklendiğinde hero section'ı göster
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelector('#hero').classList.add('visible');
+    });
 
     links.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
 
-            // Remove visibility from all sections
+            // Tüm section'ları gizle
             sections.forEach(section => {
                 section.classList.remove('visible');
             });
 
-            // Get the target section
-            const target = document.querySelector(this.getAttribute('href'));
-
-            // Scroll to top of the target section
-            window.scrollTo({
-                top: target.offsetTop - 70, // Navbar yüksekliği kadar kaydırma
-                behavior: 'smooth'
-            });
-
-            // Set a timeout to allow the scroll to complete before adding visibility
+            // Hedef section'ı göster ve scroll et
+            target.classList.add('visible');
             setTimeout(() => {
-                target.classList.add('visible'); // Make the target section visible
-            }, 500); // Match this duration with the CSS transition duration
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start' // Üst kısımla hizala
+                });
+            }, 50); // Kısa bir gecikme ekle
+        });
+    });
+
+    // Scroll event listener'ı ekle (opsiyonel)
+    window.addEventListener('scroll', () => {
+        sections.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            if(rect.top < window.innerHeight * 0.8 && rect.bottom >= 0) {
+                section.classList.add('visible');
+            }
         });
     });
 </script>
